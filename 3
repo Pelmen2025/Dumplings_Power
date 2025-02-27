@@ -42,16 +42,21 @@ let main argv =
     let imag2 = Console.ReadLine() |> float  // Чтение и преобразование ввода в число.
     let z2 = { Real = real2; Imag = imag2 }  // Создание второго комплексного числа.
 
+    printf "Введите степень, в которую нужно возвести первое число: "
+    let n = Console.ReadLine() |> int  // Читаем ввод и преобразуем в число.
+
     // Выполнение операций с комплексными числами.
     let sum = add z1 z2  // Сложение двух чисел.
     let difference = subtract z1 z2  // Вычитание двух чисел.
     let product = multiply z1 z2  // Умножение двух чисел.
     let quotient = divide z1 z2  // Деление двух чисел.
+    let powerResult = pow z1 n  // Возводим первое число в степень n.
 
     // Вывод результатов операций.
     printfn "Сумма: %f + %fi" sum.Real sum.Imag  // Печать результата сложения.
     printfn "Разность: %f + %fi" difference.Real difference.Imag  // Печать результата вычитания.
     printfn "Произведение: %f + %fi" product.Real product.Imag  // Печать результата умножения.
     printfn "Частное: %f + %fi" quotient.Real quotient.Imag  // Печать результата деления.
+    printfn "Результат возведения в степень: %f + %fi" powerResult.Real powerResult.Imag
 
     0  // Возвращаем 0, чтобы программа завершилась без ошибок.
