@@ -18,7 +18,7 @@ let readLinesFromFile (filePath: string) =
 // Основная функция взаимодействия с пользователем
 [<EntryPoint>]
 let main argv =
-    let filePath = "D:\Byz\Языки программирования\Программы\2 Курс\1 Семестр\1 Лаба\ConsoleApp2\ConsoleApp2\List.fold"
+    let filePath = "D:\Byz\Языки программирования\Программы\2 Курс\1 Семестр\Лабы\ConsoleApp2\ConsoleApp2\List.fold"
     match readLinesFromFile filePath with
     | Some lines ->
         let count = countEvenLengthStrings lines
