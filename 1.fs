@@ -20,7 +20,7 @@ let readNumbersFromFile (filePath: string) : list<float> =
 
 [<EntryPoint>]
 let main argv =
-    let filePath = "D:\Byz\Языки программирования\Программы\2 Курс\1 Семестр\1 Лаба\ConsoleApp2\ConsoleApp1\List.map"  
+    let filePath = "D:\Byz\Языки программирования\Программы\2 Курс\1 Семестр\Лабы\ConsoleApp2\ConsoleApp1\List.map"  
     let numbers = readNumbersFromFile filePath  
     match numbers with
     | [] -> printfn "Ошибка: файл пуст или содержит некорректные данные."
