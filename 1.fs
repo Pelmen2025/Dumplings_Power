@@ -1,29 +1,28 @@
 open System
-open System.IO
 
 // Функция, которая преобразует список вещественных чисел в список целых
 let truncateNumbers (nums: list<float>) : list<int> =
     nums |> List.map int  
 
-// Функция для чтения списка чисел из файла
-let readNumbersFromFile (filePath: string) : list<float> =
-    if File.Exists(filePath) then
-        File.ReadAllLines(filePath) 
-        |> List.ofArray              
-        |> List.choose (fun str ->   
+// Функция для чтения списка чисел с клавиатуры
+let readNumbersFromInput () : list<float> =
+    printf "Введите числа через пробел: " 
+    let input = Console.ReadLine()
+    match input with
+    | null -> []  
+    | _ ->
+        input.Split([|' '; '\t'|], StringSplitOptions.RemoveEmptyEntries)
+        |> List.ofSeq
+        |> List.choose (fun str ->
             match Double.TryParse(str) with
             | (true, num) -> Some num
-            | _ -> None)  
-    else
-        printfn "Ошибка: файл '%s' не найден." filePath
-        []
+            | _ -> None) 
 
 [<EntryPoint>]
 let main argv =
-    let filePath = "D:\Byz\Языки программирования\Программы\2 Курс\1 Семестр\Лабы\ConsoleApp2\ConsoleApp1\List.map"  
-    let numbers = readNumbersFromFile filePath  
+    let numbers = readNumbersFromInput()  
     match numbers with
-    | [] -> printfn "Ошибка: файл пуст или содержит некорректные данные."
+    | [] -> printfn "Ошибка: введены некорректные данные или пустая строка."
     | _ ->
         let truncatedNumbers = truncateNumbers numbers  
         printfn "Результат: %A" truncatedNumbers  
