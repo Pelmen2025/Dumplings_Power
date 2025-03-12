@@ -1,37 +1,31 @@
 open System
 
-// Функция для подсчёта строк с чётной длиной (игнорирует пустые строки)
-let countEvenLengthStrings (lines: list<string>) =
-    List.fold (fun acc line -> 
-        if not (String.IsNullOrWhiteSpace(line)) && line.Length % 2 = 0 then acc + 1 
-        else acc) 0 lines
+// Функция для запроса у пользователя количества строк с проверкой ввода
+let rec readInt prompt =
+    printf "%s" prompt
+    match Int32.TryParse(Console.ReadLine()) with
+    | (true, value) when value > 0 -> value
+    | _ ->
+        printfn "Ошибка! Введите положительное число."
+        readInt prompt
 
-// Основная функция взаимодействия с пользователем
+// Функция для запроса списка строк
+let rec readLines count acc =
+    if count = 0 then List.rev acc
+    else
+        printf "Введите строку: "
+        let line = Console.ReadLine()
+        readLines (count - 1) (line :: acc)
+
+// Основная программа
 [<EntryPoint>]
 let main argv =
-    printf "Введите количество строк: " 
-    let countLines =
-        match System.Int32.TryParse(Console.ReadLine()) with
-        | (true, n) when n > 0 -> 
-            n
-        | _ -> 
-            printfn "Ошибка ввода! Введите положительное число."; 0
+    let count = readInt "Введите количество строк: "
+    let lines = readLines count []
     
-    // Рекурсивная функция для ввода строк
-    let rec readLines acc n index =
-        if n = 0 then acc
-        else 
-            printf "Введите строку %d: " (index + 1)
-            let line = Console.ReadLine()
-            if String.IsNullOrWhiteSpace(line) then
-                printfn "Ошибка! Строка не должна быть пустой или состоять только из пробелов."
-                readLines acc n index 
-            else
-                readLines (line :: acc) (n - 1) (index + 1)
+    // Подсчёт строк с чётной длиной с использованием List.fold
+    let evenLengthCount =
+        lines |> List.fold (fun acc line -> if String.length line % 2 = 0 then acc + 1 else acc) 0
     
-    // Если количество строк больше 0, начинаем ввод строк
-    if countLines > 0 then
-        let lines = readLines [] countLines 0 |> List.rev 
-        let count = countEvenLengthStrings lines
-        printfn "Количество строк с чётной длиной: %d" count
+    printfn "Количество строк с чётной длиной: %d" evenLengthCount
     0
