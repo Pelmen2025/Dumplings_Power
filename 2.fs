@@ -23,7 +23,6 @@ let main argv =
     let count = readInt "Введите количество строк: "
     let lines = readLines count []
     
-    // Подсчёт строк с чётной длиной с использованием List.fold
     let evenLengthCount =
         lines |> List.fold (fun acc line -> if String.length line % 2 = 0 then acc + 1 else acc) 0
     
