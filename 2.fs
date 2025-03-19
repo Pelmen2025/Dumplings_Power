@@ -22,12 +22,11 @@ let rec readLines count =
 [<EntryPoint>]
 let main argv =
     let count = readInt () 
-    let lines = readLines count 
+    let lines = readLines count // Используем ленивую последовательность
     
     let evenLengthCount =
         lines
-        |> Seq.filter (fun line -> String.length line % 2 = 0)
-        |> Seq.length
+        |> Seq.fold (fun acc line -> if String.length line % 2 = 0 then acc + 1 else acc) 0
     
-    printfn "Количество строк с чётной длиной: %d" evenLengthCount 
+    printfn "Количество строк с чётной длиной: %d" evenLengthCount // Вывод результата
     0
