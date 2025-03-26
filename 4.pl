@@ -8,8 +8,8 @@ start :-
     solve_problem.
 
 solve_problem :-
-    % Определяем возможных животных
-    Animals = [dog, cat, hamster],
+    % Возможные животные (теперь на русском)
+    Animals = [собакой, кошкой, хомячком],
     
     % Генерируем все возможные распределения животных
     member(AnimalPetya, Animals),
@@ -18,16 +18,15 @@ solve_problem :-
     all_different([AnimalPetya, AnimalLena, AnimalTanya]),
     
     % Проверяем условия задачи
-    % Условие 1: Петя не любит кошек (у него не cat)
-    AnimalPetya \= cat,
+    % Условие 1: Петя не любит кошек (у него не кошка)
+    AnimalPetya \= кошка,
     
     % Условие 2: Петя живет в одном подъезде с хозяйкой хомячка
-    % (значит, хозяйка хомячка - не Петя, так как он не может быть сам с собой)
-    (AnimalLena = hamster ; AnimalTanya = hamster),
-    AnimalPetya \= hamster,
+    (AnimalLena = хомячком ; AnimalTanya = хомячком),
+    AnimalPetya \= хомячком,
     
     % Условие 3: Лена дружит с Таней, гуляющей с кошкой
-    AnimalTanya = cat,
+    AnimalTanya = кошкой,
     
     % Выводим решение
     write('Решение:'), nl,
