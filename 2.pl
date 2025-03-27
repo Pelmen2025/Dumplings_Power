@@ -1,10 +1,3 @@
-% Функция для вычисления ближайших степеней двойки
-next_power_of_two(X, P) :- 
-    P is 2 ** (floor(log(X) / log(2)) + 1).
-
-previous_power_of_two(X, P) :- 
-    P is 2 ** floor(log(X) / log(2)).
-
 % Предикат для чтения списка целых чисел с клавиатуры
 read_integer_list(List) :-
     write('Введите положительные числа списка через пробел: '),
