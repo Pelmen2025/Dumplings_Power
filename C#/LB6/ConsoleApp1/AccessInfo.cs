@@ -2,28 +2,28 @@
 
 public class AccessInfo
 {
-    protected bool hasStudentCard;
-    protected bool hasPass;
+    private bool _hasStudentCard;
+    private bool _hasPass;
 
     public AccessInfo(bool hasStudentCard, bool hasPass)
     {
-        this.hasStudentCard = hasStudentCard;
-        this.hasPass = hasPass;
+        this._hasStudentCard = hasStudentCard;
+        this._hasPass = hasPass;
     }
 
     public AccessInfo(AccessInfo other)
     {
-        hasStudentCard = other.hasStudentCard;
-        hasPass = other.hasPass;
+        _hasStudentCard = other._hasStudentCard;
+        _hasPass = other._hasPass;
     }
 
     public bool HasAccess()
     {
-        return hasStudentCard || hasPass;
+        return _hasStudentCard || _hasPass;
     }
 
     public override string ToString()
     {
-        return $"Студенческий билет: {(hasStudentCard ? "да" : "нет")}, Пропуск: {(hasPass ? "да" : "нет")}";
+        return $"Студенческий билет: {(_hasStudentCard ? "да" : "нет")}, Пропуск: {(_hasPass ? "да" : "нет")}";
     }
 }

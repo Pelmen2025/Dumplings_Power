@@ -1,22 +1,22 @@
 ﻿public class ExtendedAccessInfo : AccessInfo
 {
-    private string userName;
+    private string _userName;
 
     public ExtendedAccessInfo(string userName, bool hasStudentCard, bool hasPass)
         : base(hasStudentCard, hasPass)
     {
-        this.userName = userName;
+        this._userName = userName;
     }
 
     public ExtendedAccessInfo(ExtendedAccessInfo other)
         : base(other)
     {
-        userName = other.userName;
+        _userName = other._userName;
     }
 
     public void DisplayGreeting()
     {
-        Console.WriteLine($"Здравствуйте, {userName}!");
+        Console.WriteLine($"Здравствуйте, {_userName}!");
     }
 
     public void DisplayAccessStatus()
@@ -26,6 +26,6 @@
 
     public override string ToString()
     {
-        return $"Пользователь: {userName}, " + base.ToString();
+        return $"Пользователь: {_userName}, " + base.ToString();
     }
 }
