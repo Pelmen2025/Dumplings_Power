@@ -7,14 +7,26 @@ public class AccessInfo
 
     public AccessInfo(bool hasStudentCard, bool hasPass)
     {
-        this._hasStudentCard = hasStudentCard;
-        this._hasPass = hasPass;
+        HasStudentCard = hasStudentCard;
+        HasPass = hasPass;
     }
 
     public AccessInfo(AccessInfo other)
     {
-        _hasStudentCard = other._hasStudentCard;
-        _hasPass = other._hasPass;
+        HasStudentCard = other.HasStudentCard;
+        HasPass = other.HasPass;
+    }
+
+    public bool HasStudentCard
+    {
+        get { return _hasStudentCard; }
+        set { _hasStudentCard = value; }
+    }
+
+    public bool HasPass
+    {
+        get { return _hasPass; }
+        set { _hasPass = value; }
     }
 
     public bool HasAccess()
