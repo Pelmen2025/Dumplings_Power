@@ -10,55 +10,27 @@ class Program
         string name = Console.ReadLine();
 
         bool hasStudentCard = InputValidator.GetBooleanInput("Есть ли у вас студенческий билет?");
-        bool hasPass = InputValidator.GetBooleanInput("Есть ли у вас пропуск?")
+        bool hasPass = InputValidator.GetBooleanInput("Есть ли у вас пропуск?");
 
-<<<<<<< HEAD
 
-=======
-<<<<<<< HEAD
-=======
-        
->>>>>>> origin/main
->>>>>>> origin/main
         AccessInfo access = new AccessInfo(hasStudentCard, hasPass);
         Console.WriteLine("\n[Базовый класс]");
         Console.WriteLine(access.ToString());
         Console.WriteLine(access.HasAccess() ? "Доступ разрешён." : "Доступ запрещён.");
 
-<<<<<<< HEAD
 
-=======
-<<<<<<< HEAD
-=======
-        
->>>>>>> origin/main
->>>>>>> origin/main
         AccessInfo copyAccess = new AccessInfo(access);
         Console.WriteLine("\n[Копия базового класса]");
         Console.WriteLine(copyAccess.ToString());
 
-<<<<<<< HEAD
 
-=======
-<<<<<<< HEAD
-=======
-        
->>>>>>> origin/main
->>>>>>> origin/main
         ExtendedAccessInfo extendedAccess = new ExtendedAccessInfo(name, hasStudentCard, hasPass);
         Console.WriteLine("\n[Дочерний класс]");
         extendedAccess.DisplayGreeting();
         Console.WriteLine(extendedAccess.ToString());
         extendedAccess.DisplayAccessStatus();
 
-<<<<<<< HEAD
 
-=======
-<<<<<<< HEAD
-=======
-        
->>>>>>> origin/main
->>>>>>> origin/main
         ExtendedAccessInfo copyExtended = new ExtendedAccessInfo(extendedAccess);
         Console.WriteLine("\n[Копия дочернего класса]");
         Console.WriteLine(copyExtended.ToString());
