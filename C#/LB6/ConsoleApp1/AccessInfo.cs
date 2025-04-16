@@ -31,11 +31,11 @@ public class AccessInfo
 
     public bool HasAccess()
     {
-        return _hasStudentCard || _hasPass;
+        return HasStudentCard || HasPass;
     }
 
     public override string ToString()
     {
-        return $"Студенческий билет: {(_hasStudentCard ? "да" : "нет")}, Пропуск: {(_hasPass ? "да" : "нет")}";
+        return $"Студенческий билет: {(HasStudentCard ? "да" : "нет")}, Пропуск: {(HasPass ? "да" : "нет")}";
     }
 }
