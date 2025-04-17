@@ -19,14 +19,26 @@ public class AccessInfo
 
     public bool HasStudentCard
     {
-        get { return _hasStudentCard; }
-        set { _hasStudentCard = value; }
+        get 
+        { 
+            return _hasStudentCard;
+        }
+        set 
+        { 
+            _hasStudentCard = value; 
+        }
     }
 
     public bool HasPass
     {
-        get { return _hasPass; }
-        set { _hasPass = value; }
+        get 
+        {
+            return _hasPass;
+        }
+        set 
+        { 
+            _hasPass = value; 
+        }
     }
 
     public bool HasAccess()
