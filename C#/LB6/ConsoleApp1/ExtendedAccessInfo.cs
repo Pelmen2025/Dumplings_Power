@@ -16,8 +16,14 @@
 
     public string UserName
     {
-        get  {return _userName; }
-        set {_userName = value; }
+        get  
+        {
+            return _userName; 
+        }
+        set 
+        {
+            _userName = value; 
+        }
     }
 
     public void DisplayGreeting()
