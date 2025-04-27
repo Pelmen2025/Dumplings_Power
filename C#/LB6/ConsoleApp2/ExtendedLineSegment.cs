@@ -31,16 +31,19 @@ public class ExtendedLineSegment : LineSegment
 
     public static ExtendedLineSegment operator -(int value, ExtendedLineSegment segment)
     {
-        return new ExtendedLineSegment(segment.Start, segment.End - value);
+        return new ExtendedLineSegment(segment.Start - value, segment.End);
+
+
+        //return new ExtendedLineSegment(segment.Start, segment.End - value);
     }
 
     public static bool operator <(ExtendedLineSegment a, ExtendedLineSegment b)
     {
         return a.Intersects(b);
     }
-
     public static bool operator >(ExtendedLineSegment a, ExtendedLineSegment b)
     {
         return a.Intersects(b);
     }
+
 }
