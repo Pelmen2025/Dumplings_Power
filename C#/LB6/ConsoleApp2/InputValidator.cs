@@ -8,7 +8,7 @@ public static class InputValidator
         while (true)
         {
             Console.Write(prompt);
-            string? input = Console.ReadLine();
+            var input = Console.ReadLine();
             if (double.TryParse(input, out result))
             {
                 return result;
