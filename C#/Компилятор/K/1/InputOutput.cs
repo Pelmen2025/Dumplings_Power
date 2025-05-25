@@ -144,17 +144,20 @@ namespace Компилятор
             using var fs = new StreamReader("test_code.txt");
             InputOutput.SetFile(fs);
 
-            // Строка 0: ошибка - потеря ;
-            InputOutput.Error(1, new TextPosition(0, 9));
+            InputOutput.Error(1, new TextPosition(0, 18));
+            InputOutput.NextCh();
 
-            // Строка 1: ошибка - неизвестный символ
-            InputOutput.Error(2, new TextPosition(1, 0));
+            InputOutput.Error(1, new TextPosition(1, 20));
+            InputOutput.NextCh();
 
-            // Строка 2: ошибка - неправильная скобка
-            InputOutput.Error(5, new TextPosition(2, 8));
+            InputOutput.Error(1, new TextPosition(3, 8));
+            InputOutput.NextCh();
 
-            // Строка 3: ошибка - неправильная скобка
-            InputOutput.Error(5, new TextPosition(3, 11));
+            InputOutput.Error(1, new TextPosition(5, 12));
+            InputOutput.NextCh();
+
+            InputOutput.Error(1, new TextPosition(6, 24));
+            InputOutput.NextCh();
 
             while (true)
                 InputOutput.NextCh();
