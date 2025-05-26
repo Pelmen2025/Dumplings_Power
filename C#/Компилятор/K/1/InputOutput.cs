@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-
-namespace Компилятор
+﻿namespace Компилятор
 {
     struct TextPosition
     {
@@ -34,18 +30,18 @@ namespace Компилятор
     {
         const byte ERRMAX = 9;
         public static char Ch { get; set; }
-        public static TextPosition positionNow = new ();
-        static string line;
-        static byte lastInLine = 0;
+        private static TextPosition _positionNow;
+        public static string Line { get; set; }
+        public static byte LastInLine { get; set; }
 
-        public static List<Err> allErrors = new List<Err>();
+        public static List<Err> AllErrors { get; set; }
 
-        public static List<Err> currentLineErrors = new List<Err>();
+        public static List<Err> CurrentLineErrors { get; set; }
 
-        static StreamReader File { get; set; }
-        static uint errCount = 0;
+        public static StreamReader File { get; set; }
+        public static uint ErrCount { get; set; }
 
-        static readonly Dictionary<byte, string> errorMessages = new()
+        static readonly Dictionary<byte, string> ErrorMessages = new()
         {
             { 1, "Потеря ;" },
             { 2, "Неизвестный символ" },
@@ -53,86 +49,95 @@ namespace Компилятор
             { 4, "Ожидался идентификатор" },
             { 5, "Неправильная скобка" }
         };
-
+        static InputOutput()
+        {
+            ErrCount = 0;
+            LastInLine = 0;
+            CurrentLineErrors = [];
+            AllErrors = [];
+        }
         public static void SetFile(StreamReader file)
         {
+
             File = file;
-            positionNow = new TextPosition(0, 0);
+            _positionNow = new TextPosition(0, 0);
             ReadNextLine();
         }
 
         public static void NextCh()
         {
-            if (line == null)
+            if (Line == null)
                 return;
 
-            if (positionNow.CharNumber == lastInLine)
+            if (_positionNow.CharNumber == LastInLine)
             {
                 ListThisLine();
 
-                currentLineErrors = allErrors.FindAll(e => e.ErrorPosition.LineNumber == positionNow.LineNumber);
+                CurrentLineErrors = AllErrors.FindAll(e => e.ErrorPosition.LineNumber == _positionNow.LineNumber);
 
-                if (currentLineErrors.Count > 0)
+                if (CurrentLineErrors.Count > 0)
                     ListErrors();
 
                 ReadNextLine();
-                positionNow.LineNumber++;
-                positionNow.CharNumber = 0;
+                _positionNow.LineNumber++;
+                _positionNow.CharNumber = 0;
             }
             else
             {
-                positionNow.CharNumber++;
+                _positionNow.CharNumber++;
             }
 
-            if (!string.IsNullOrEmpty(line) && positionNow.CharNumber < line.Length)
-                Ch = line[positionNow.CharNumber];
+            if (!string.IsNullOrEmpty(Line) && _positionNow.CharNumber < Line.Length)
+                Ch = Line[_positionNow.CharNumber];
             else
                 Ch = '\0';
         }
 
         private static void ListThisLine()
         {
-            Console.WriteLine(line);
+            Console.WriteLine(Line);
         }
 
         private static void ReadNextLine()
         {
             if (!File.EndOfStream)
             {
-                line = File.ReadLine();
-                lastInLine = (byte)(line.Length - 1);
+                Line = File.ReadLine();
+                LastInLine = (byte)(Line.Length - 1);
             }
             else
             {
                 End();
                 Environment.Exit(0);
+                //Line = null;
+                //Ch = '\0';
             }
         }
 
         static void End()
         {
-            Console.WriteLine($"\nКомпиляция завершена: ошибок - {errCount}!");
+            Console.WriteLine($"\nКомпиляция завершена: ошибок - {ErrCount}!");
         }
 
         static void ListErrors()
         {
-            foreach (Err item in currentLineErrors)
+            foreach (Err item in CurrentLineErrors)
             {
-                ++errCount;
+                ++ErrCount;
                 string spaces = new string(' ', item.ErrorPosition.CharNumber);
-                string message = errorMessages.ContainsKey(item.ErrorCode)
-                    ? errorMessages[item.ErrorCode]
+                string message = ErrorMessages.ContainsKey(item.ErrorCode)
+                    ? ErrorMessages[item.ErrorCode]
                     : "Неизвестная ошибка";
 
-                Console.WriteLine($"{spaces}^ **{errCount:00}**: ошибка {item.ErrorCode} - {message}");
+                Console.WriteLine($"{spaces}^ **{ErrCount:00}**: ошибка {item.ErrorCode} - {message}");
             }
         }
 
         public static void Error(byte errorCode, TextPosition position)
         {
-            if (allErrors.Count < ERRMAX)
+            if (AllErrors.Count < ERRMAX)
             {
-                allErrors.Add(new Err(position, errorCode));
+                AllErrors.Add(new Err(position, errorCode));
             }
         }
     }
