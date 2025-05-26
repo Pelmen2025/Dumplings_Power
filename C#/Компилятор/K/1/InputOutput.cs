@@ -37,10 +37,8 @@ namespace Компилятор
         static string line;
         static byte lastInLine = 0;
 
-        // Все ошибки
         public static List<Err> allErrors = new List<Err>();
 
-        // Ошибки для текущей строки
         public static List<Err> currentLineErrors = new List<Err>();
 
         static StreamReader File { get; set; }
