@@ -6,14 +6,15 @@ namespace Компилятор
 {
     struct TextPosition
     {
-        public uint lineNumber;
-        public byte charNumber;
-
         public TextPosition(uint ln = 0, byte c = 0)
         {
-            lineNumber = ln;
-            charNumber = c;
+            LineNumber = ln;
+            CharNumber = c;
         }
+
+        public uint LineNumber { get; set; }
+
+        public byte CharNumber { get; set; }
     }
 
     struct Err
@@ -66,26 +67,26 @@ namespace Компилятор
             if (line == null)
                 return;
 
-            if (positionNow.charNumber == lastInLine)
+            if (positionNow.CharNumber == lastInLine)
             {
                 ListThisLine();
 
-                currentLineErrors = allErrors.FindAll(e => e.errorPosition.lineNumber == positionNow.lineNumber);
+                currentLineErrors = allErrors.FindAll(e => e.errorPosition.LineNumber == positionNow.LineNumber);
 
                 if (currentLineErrors.Count > 0)
                     ListErrors();
 
                 ReadNextLine();
-                positionNow.lineNumber++;
-                positionNow.charNumber = 0;
+                positionNow.LineNumber++;
+                positionNow.CharNumber = 0;
             }
             else
             {
-                positionNow.charNumber++;
+                positionNow.CharNumber++;
             }
 
-            if (!string.IsNullOrEmpty(line) && positionNow.charNumber < line.Length)
-                Ch = line[positionNow.charNumber];
+            if (!string.IsNullOrEmpty(line) && positionNow.CharNumber < line.Length)
+                Ch = line[positionNow.CharNumber];
             else
                 Ch = '\0';
         }
@@ -119,7 +120,7 @@ namespace Компилятор
             foreach (Err item in currentLineErrors)
             {
                 ++errCount;
-                string spaces = new string(' ', item.errorPosition.charNumber);
+                string spaces = new string(' ', item.errorPosition.CharNumber);
                 string message = errorMessages.ContainsKey(item.errorCode)
                     ? errorMessages[item.errorCode]
                     : "Неизвестная ошибка";
