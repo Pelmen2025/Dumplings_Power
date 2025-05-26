@@ -6,26 +6,27 @@ namespace Компилятор
 {
     struct TextPosition
     {
+        public uint LineNumber { get; set; }
+        public byte CharNumber { get; set; }
+
         public TextPosition(uint ln = 0, byte c = 0)
         {
             LineNumber = ln;
             CharNumber = c;
         }
 
-        public uint LineNumber { get; set; }
-
-        public byte CharNumber { get; set; }
+        
     }
 
     struct Err
     {
-        public TextPosition errorPosition;
-        public byte errorCode;
+        public TextPosition ErrorPosition { get; set; }
+        public byte ErrorCode { get; set; }
 
         public Err(TextPosition errorPosition, byte errorCode)
         {
-            this.errorPosition = errorPosition;
-            this.errorCode = errorCode;
+            this.ErrorPosition = errorPosition;
+            this.ErrorCode = errorCode;
         }
     }
 
@@ -33,7 +34,7 @@ namespace Компилятор
     {
         const byte ERRMAX = 9;
         public static char Ch { get; set; }
-        public static TextPosition positionNow = new TextPosition();
+        public static TextPosition positionNow = new ();
         static string line;
         static byte lastInLine = 0;
 
@@ -69,7 +70,7 @@ namespace Компилятор
             {
                 ListThisLine();
 
-                currentLineErrors = allErrors.FindAll(e => e.errorPosition.LineNumber == positionNow.LineNumber);
+                currentLineErrors = allErrors.FindAll(e => e.ErrorPosition.LineNumber == positionNow.LineNumber);
 
                 if (currentLineErrors.Count > 0)
                     ListErrors();
@@ -118,12 +119,12 @@ namespace Компилятор
             foreach (Err item in currentLineErrors)
             {
                 ++errCount;
-                string spaces = new string(' ', item.errorPosition.CharNumber);
-                string message = errorMessages.ContainsKey(item.errorCode)
-                    ? errorMessages[item.errorCode]
+                string spaces = new string(' ', item.ErrorPosition.CharNumber);
+                string message = errorMessages.ContainsKey(item.ErrorCode)
+                    ? errorMessages[item.ErrorCode]
                     : "Неизвестная ошибка";
 
-                Console.WriteLine($"{spaces}^ **{errCount:00}**: ошибка {item.errorCode} - {message}");
+                Console.WriteLine($"{spaces}^ **{errCount:00}**: ошибка {item.ErrorCode} - {message}");
             }
         }
 
