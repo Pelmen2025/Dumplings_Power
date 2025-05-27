@@ -41,7 +41,7 @@
         public static StreamReader File { get; set; }
         public static uint ErrCount { get; set; }
 
-        static readonly Dictionary<byte, string> ErrorMessages = new()
+        private static readonly Dictionary<byte, string> ErrorMessages = new()
         {
             { 1, "Потеря ;" },
             { 2, "Неизвестный символ" },
