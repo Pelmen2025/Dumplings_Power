@@ -4,6 +4,29 @@ using System.IO;
 
 namespace PascalLexer
 {
+    struct TextPosition
+    {
+        public int LineNumber { get; }
+        public int CharNumber { get; }
+
+        public TextPosition(int lineNumber, int charNumber)
+        {
+            LineNumber = lineNumber;
+            CharNumber = charNumber;
+        }
+    }
+
+    struct Err
+    {
+        public TextPosition Position { get; }
+        public byte ErrorCode { get; }
+
+        public Err(TextPosition position, byte errorCode)
+        {
+            Position = position;
+            ErrorCode = errorCode;
+        }
+    }
     class InputOutput
     {
         private static StreamReader file;
@@ -115,30 +138,6 @@ namespace PascalLexer
             }
 
             Console.WriteLine($"\nКомпиляция завершена: ошибок - {allErrors.Count}!");
-        }
-    }
-
-    struct TextPosition
-    {
-        public int LineNumber { get; }
-        public int CharNumber { get; }
-
-        public TextPosition(int lineNumber, int charNumber)
-        {
-            LineNumber = lineNumber;
-            CharNumber = charNumber;
-        }
-    }
-
-    class Err
-    {
-        public TextPosition Position { get; }
-        public byte ErrorCode { get; }
-
-        public Err(TextPosition position, byte errorCode)
-        {
-            Position = position;
-            ErrorCode = errorCode;
         }
     }
 }
