@@ -4,29 +4,6 @@ using System.IO;
 
 namespace PascalLexer
 {
-    struct TextPosition
-    {
-        public int LineNumber { get; }
-        public int CharNumber { get; }
-
-        public TextPosition(int lineNumber, int charNumber)
-        {
-            LineNumber = lineNumber;
-            CharNumber = charNumber;
-        }
-    }
-
-    struct Err
-    {
-        public TextPosition Position { get; }
-        public byte ErrorCode { get; }
-
-        public Err(TextPosition position, byte errorCode)
-        {
-            Position = position;
-            ErrorCode = errorCode;
-        }
-    }
     class InputOutput
     {
         private static StreamReader file;
@@ -105,7 +82,9 @@ namespace PascalLexer
 
         public static void Error(byte errorCode, TextPosition position)
         {
-            if (allErrors.Count < 100 && !allErrors.Exists(e => e.Position.LineNumber == position.LineNumber && e.Position.CharNumber == position.CharNumber && e.ErrorCode == errorCode))
+            if (allErrors.Count < 100 && !allErrors.Exists(e => e.Position.LineNumber == position.LineNumber 
+                && e.Position.CharNumber == position.CharNumber 
+                    && e.ErrorCode == errorCode))
             {
                 allErrors.Add(new Err(position, errorCode));
             }
