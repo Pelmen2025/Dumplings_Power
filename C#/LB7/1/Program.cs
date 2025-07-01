@@ -43,9 +43,9 @@ namespace LabTasks
                     case 7:
                         TasksClass.Task7();
                         break;
-                    //case 8:
-                    //    TasksClass.Task8();
-                    //    break;
+                    case 8:
+                        TasksClass.Task8();
+                        break;
                     case 9:
                         TasksClass.Task9();
                         break;

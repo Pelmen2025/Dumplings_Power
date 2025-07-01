@@ -271,6 +271,190 @@ public static class TasksClass
         Console.WriteLine();
     }
 
+    // Задание 8
+    public static void Task8()
+    {
+        string fileName = "task8.txt";
+
+        // Проверка существования файла
+        if (!File.Exists(fileName))
+        {
+            Console.WriteLine($"Ошибка: Файл {fileName} не найден.");
+            return;
+        }
+
+        // Чтение и вывод содержимого файла
+        Console.WriteLine("Содержимое файла task8.txt:");
+        string[] lines = File.ReadAllLines(fileName);
+        for (int i = 0; i < lines.Length; i++)
+        {
+            Console.WriteLine(lines[i]);
+        }
+
+        // Проверка, что файл содержит хотя бы одну строку (список ТРЦ)
+        if (lines.Length == 0)
+        {
+            Console.WriteLine("Ошибка: Файл пуст.");
+            return;
+        }
+
+        // Читаем список всех ТРЦ из первой строки
+        string[] allTRCs = lines[0].Split(' ');
+        if (allTRCs.Length == 0)
+        {
+            Console.WriteLine("Ошибка: Список ТРЦ пуст.");
+            return;
+        }
+
+        // Список для хранения ТРЦ, посещенных всеми студентами
+        List<string> allVisited = new List<string>();
+        for (int i = 0; i < allTRCs.Length; i++)
+        {
+            allVisited.Add(allTRCs[i]);
+        }
+
+        // Список для хранения ТРЦ, посещенных хотя бы одним студентом
+        List<string> someVisited = new List<string>();
+
+        // Обработка данных студентов (начиная со второй строки)
+        for (int i = 1; i < lines.Length; i++)
+        {
+            string[] parts = lines[i].Split(' ');
+            if (parts.Length < 1)
+            {
+                Console.WriteLine($"Предупреждение: Пропущена строка {i + 1} (пустая или некорректная).");
+                continue;
+            }
+            string[] visitedTRCs = new string[parts.Length - 1];
+            for (int j = 1; j < parts.Length; j++)
+            {
+                visitedTRCs[j - 1] = parts[j];
+            }
+
+            // Обновляем список ТРЦ, посещенных всеми
+            for (int j = 0; j < allVisited.Count; j++)
+            {
+                bool found = false;
+                for (int k = 0; k < visitedTRCs.Length; k++)
+                {
+                    if (allVisited[j] == visitedTRCs[k])
+                    {
+                        found = true;
+                        break;
+                    }
+                }
+                if (!found)
+                {
+                    allVisited.RemoveAt(j);
+                    j--;
+                }
+            }
+
+            // Добавляем посещенные ТРЦ в someVisited, если их там еще нет
+            for (int j = 0; j < visitedTRCs.Length; j++)
+            {
+                bool exists = false;
+                for (int k = 0; k < someVisited.Count; k++)
+                {
+                    if (someVisited[k] == visitedTRCs[j])
+                    {
+                        exists = true;
+                        break;
+                    }
+                }
+                if (!exists)
+                {
+                    someVisited.Add(visitedTRCs[j]);
+                }
+            }
+        }
+
+        // Исключаем ТРЦ, посещенные всеми, из списка someVisited
+        for (int i = 0; i < someVisited.Count; i++)
+        {
+            for (int j = 0; j < allVisited.Count; j++)
+            {
+                if (someVisited[i] == allVisited[j])
+                {
+                    someVisited.RemoveAt(i);
+                    i--;
+                    break;
+                }
+            }
+        }
+
+        // Находим ТРЦ, которые никто не посещал
+        List<string> notVisited = new List<string>();
+        for (int i = 0; i < allTRCs.Length; i++)
+        {
+            bool visited = false;
+            for (int j = 0; j < allVisited.Count; j++)
+            {
+                if (allTRCs[i] == allVisited[j])
+                {
+                    visited = true;
+                    break;
+                }
+            }
+            if (!visited)
+            {
+                for (int j = 0; j < someVisited.Count; j++)
+                {
+                    if (allTRCs[i] == someVisited[j])
+                    {
+                        visited = true;
+                        break;
+                    }
+                }
+            }
+            if (!visited)
+            {
+                notVisited.Add(allTRCs[i]);
+            }
+        }
+
+        // Вывод результатов
+        Console.WriteLine("\nТРЦ, посещенные всеми студентами:");
+        if (allVisited.Count == 0)
+        {
+            Console.WriteLine("Таких ТРЦ нет.");
+        }
+        else
+        {
+            for (int i = 0; i < allVisited.Count; i++)
+            {
+                Console.WriteLine(allVisited[i]);
+            }
+        }
+
+        Console.WriteLine("\nТРЦ, посещенные некоторыми студентами (но не всеми):");
+        if (someVisited.Count == 0)
+        {
+            Console.WriteLine("Таких ТРЦ нет.");
+        }
+        else
+        {
+            for (int i = 0; i < someVisited.Count; i++)
+            {
+                Console.WriteLine(someVisited[i]);
+            }
+        }
+
+        Console.WriteLine("\nТРЦ, которые никто не посещал:");
+        if (notVisited.Count == 0)
+        {
+            Console.WriteLine("Таких ТРЦ нет.");
+        }
+        else
+        {
+            for (int i = 0; i < notVisited.Count; i++)
+            {
+                Console.WriteLine(notVisited[i]);
+            }
+        }
+
+    }
+
     // Задание 9
     public static void Task9()
     {
