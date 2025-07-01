@@ -142,7 +142,8 @@ namespace PascalLexer
 
         private byte NextSym()
         {
-            while (char.IsWhiteSpace(InputOutput.Ch) || InputOutput.Ch == '\n' || InputOutput.Ch == '\r')
+            while (char.IsWhiteSpace(InputOutput.Ch) || InputOutput.Ch == '\n' 
+                || InputOutput.Ch == '\r')
             {
                 InputOutput.NextCh();
             }
@@ -183,7 +184,8 @@ namespace PascalLexer
             {
                 number += InputOutput.Ch;
                 int digit = InputOutput.Ch - '0';
-                if (_nmbInt <= MAX_INT / 10 && (_nmbInt < MAX_INT / 10 || digit <= MAX_INT % 10))
+                if (_nmbInt <= MAX_INT / 10 && (_nmbInt < MAX_INT / 10 
+                    || digit <= MAX_INT % 10))
                 {
                     _nmbInt = 10 * _nmbInt + digit;
                 }
@@ -258,7 +260,8 @@ namespace PascalLexer
             }
 
             byte length = (byte)_addrName.Length;
-            if (_keywords.Keyword.TryGetValue(length, out var dict) && dict.TryGetValue(_addrName.ToLower(), out byte code))
+            if (_keywords.Keyword.TryGetValue(length, out var dict) 
+                && dict.TryGetValue(_addrName.ToLower(), out byte code))
             {
                 _symbol = code;
             }

@@ -217,43 +217,35 @@ public static class TasksClass
     // Задание 10
     public static void Task10()
     {
-        // Запрос количества спортсменов с валидацией
+
         int N = InputValidator.ValidateNumberOfAthletes();
 
-        // Запрос количества видов спорта с валидацией
         int M = InputValidator.ValidateNumberOfSports();
 
-        // Словарь для хранения информации о спортсменах
         Dictionary<string, (int sum, int[] scores)> scores = new Dictionary<string, (int sum, int[] scores)>();
 
-        // Чтение данных о спортсменах с валидацией
         for (int i = 0; i < N; i++)
         {
             var (fullName, individualScores) = InputValidator.ValidateAthleteData(M);
             int sum = 0;
-            // Суммируем баллы вручную (без использования LINQ)
             foreach (var score in individualScores)
             {
                 sum += score;
             }
 
-            // Добавляем информацию о спортсмене в словарь
             scores[fullName] = (sum, individualScores);
         }
 
-        // Сортировка спортсменов по убыванию суммы баллов (без LINQ)
         var sortedScores = new List<KeyValuePair<string, (int sum, int[] scores)>>(scores);
         sortedScores.Sort((x, y) => y.Value.sum.CompareTo(x.Value.sum));
 
-        // Вывод результатов с указанием мест
         Console.WriteLine("\nРезультаты соревнований (сортировка по убыванию суммы баллов):");
         int place = 1;
-        int previousScore = -1; // Для отслеживания одинаковых баллов
+        int previousScore = -1; 
         foreach (var score in sortedScores)
         {
             if (score.Value.sum != previousScore)
             {
-                // Если баллы изменились, обновляем место
                 place = sortedScores.IndexOf(score) + 1;
             }
 

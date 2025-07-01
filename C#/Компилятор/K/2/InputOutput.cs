@@ -82,9 +82,10 @@ namespace PascalLexer
 
         public static void Error(byte errorCode, TextPosition position)
         {
-            if (allErrors.Count < 100 && !allErrors.Exists(e => e.Position.LineNumber == position.LineNumber 
-                && e.Position.CharNumber == position.CharNumber 
-                    && e.ErrorCode == errorCode))
+            if (allErrors.Count < 100 && !allErrors.Exists(e => 
+                e.Position.LineNumber == position.LineNumber 
+                    && e.Position.CharNumber == position.CharNumber 
+                        && e.ErrorCode == errorCode))
             {
                 allErrors.Add(new Err(position, errorCode));
             }
@@ -107,7 +108,8 @@ namespace PascalLexer
                 {
                     if (error.Position.LineNumber == i + 1)
                     {
-                        string spaces = new string(' ', error.Position.CharNumber > 0 ? error.Position.CharNumber - 1 : 0);
+                        string spaces = new string(' ', error.Position.CharNumber > 0 
+                            ? error.Position.CharNumber - 1 : 0);
                         string message = errorMessages.ContainsKey(error.ErrorCode)
                             ? errorMessages[error.ErrorCode]
                             : "Неизвестная ошибка";
