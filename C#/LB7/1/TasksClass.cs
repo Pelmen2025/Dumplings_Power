@@ -1,4 +1,7 @@
-﻿using System.Xml.Serialization;
+﻿using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Xml.Serialization;
 
 public static class TasksClass
 {
@@ -6,9 +9,26 @@ public static class TasksClass
     public static void Task1()
     {
         string fileName = "task1.txt";
-        var numbers = File.ReadAllLines(fileName).Select(int.Parse).ToList();
-        int min = numbers.Min();
-        int max = numbers.Max();
+        // Генерируем случайные данные
+        Class.FillRandomDataToFile(fileName, 10);
+        string[] lines = File.ReadAllLines(fileName);
+        // Вывод содержимого файла
+        Console.WriteLine("Содержимое файла task1.txt:");
+        for (int i = 0; i < lines.Length; i++)
+        {
+            Console.WriteLine(lines[i]);
+        }
+        int min = int.MaxValue;
+        int max = int.MinValue;
+
+        for (int i = 0; i < lines.Length; i++)
+        {
+            if (int.TryParse(lines[i], out int num))
+            {
+                if (num < min) min = num;
+                if (num > max) max = num;
+            }
+        }
         double avg = (min + max) / 2.0;
         Console.WriteLine($"Среднее арифметическое максимального и минимального элементов: {avg}");
     }
@@ -17,19 +37,27 @@ public static class TasksClass
     public static void Task2()
     {
         string fileName = "task2.txt";
-        var lines = File.ReadAllLines(fileName);
+        // Генерируем случайные данные
+        Class.FillRandomDataToFileWithMultipleNumbers(fileName, 5, 4);
+        string[] lines = File.ReadAllLines(fileName);
+        // Вывод содержимого файла
+        Console.WriteLine("Содержимое файла task2.txt:");
+        for (int i = 0; i < lines.Length; i++)
+        {
+            Console.WriteLine(lines[i]);
+        }
         long product = 1;
 
-        foreach (var line in lines)
+        for (int i = 0; i < lines.Length; i++)
         {
-            var numbers = line.Split(' '); 
-            foreach (var numStr in numbers)
+            string[] numbers = lines[i].Split(' ');
+            for (int j = 0; j < numbers.Length; j++)
             {
-                if (int.TryParse(numStr, out int num)) 
+                if (int.TryParse(numbers[j], out int num))
                 {
-                    if (num % 2 == 0) 
+                    if (num % 2 == 0)
                     {
-                        product *= num; 
+                        product *= num;
                     }
                 }
             }
@@ -43,31 +71,50 @@ public static class TasksClass
     {
         string inputFileName = "task3.txt";
         string outputFileName = "task3_output.txt";
+        // Вывод содержимого входного файла
+        Console.WriteLine("Содержимое файла task3.txt:");
+        string[] lines = File.ReadAllLines(inputFileName);
+        for (int i = 0; i < lines.Length; i++)
+        {
+            Console.WriteLine(lines[i]);
+        }
         Class.CopyLinesWithoutLatinLetters(inputFileName, outputFileName);
+        // Вывод содержимого выходного файла
+        Console.WriteLine("Содержимое файла task3_output.txt (строки без латинских букв):");
+        lines = File.ReadAllLines(outputFileName);
+        for (int i = 0; i < lines.Length; i++)
+        {
+            Console.WriteLine(lines[i]);
+        }
         Console.WriteLine($"Строки без латинских букв записаны в файл {outputFileName}");
     }
 
-    // Задание 4 (Бинарные файлы: вывести сгенерированные числа)
+    // Задание 4
     public static void Task4()
     {
         string fileName = "task4.bin";
-        Random rand = new Random();
-        List<int> generatedNumbers = new List<int>();
+        // Генерируем случайные данные в бинарный файл
+        Class.FillRandomBinaryData(fileName, 10);
+        int[] generatedNumbers = new int[10];
+        int index = 0;
 
-        // Заполняем бинарный файл случайными числами
-        using (BinaryWriter writer = new BinaryWriter(File.Open(fileName, FileMode.Create)))
+        // Читаем данные для вывода
+        using (BinaryReader reader = new BinaryReader(File.Open(fileName, FileMode.Open)))
         {
-            for (int i = 0; i < 10; i++)
+            while (reader.BaseStream.Position < reader.BaseStream.Length)
             {
-                int num = rand.Next(1, 100);
-                generatedNumbers.Add(num);
-                writer.Write(num);
+                int num = reader.ReadInt32();
+                generatedNumbers[index++] = num;
             }
         }
 
-        Console.WriteLine("Сгенерированные числа:");
-        Console.WriteLine(string.Join(", ", generatedNumbers));
-
+        // Вывод содержимого бинарного файла
+        Console.WriteLine("Содержимое файла task4.bin (сгенерированные числа):");
+        for (int i = 0; i < generatedNumbers.Length; i++)
+        {
+            Console.Write((i < generatedNumbers.Length - 1) ? $"{generatedNumbers[i]}, " : $"{generatedNumbers[i]}");
+        }
+        Console.WriteLine();
 
         int oddSquares = 0;
         using (BinaryReader reader = new BinaryReader(File.Open(fileName, FileMode.Open)))
@@ -75,9 +122,13 @@ public static class TasksClass
             while (reader.BaseStream.Position < reader.BaseStream.Length)
             {
                 int number = reader.ReadInt32();
-                if (number % 2 != 0 && Math.Sqrt(number) % 1 == 0)
+                if (number % 2 != 0)
                 {
-                    oddSquares++;
+                    double sqrt = Math.Sqrt(number);
+                    if (sqrt == (int)sqrt)
+                    {
+                        oddSquares++;
+                    }
                 }
             }
         }
@@ -85,7 +136,7 @@ public static class TasksClass
         Console.WriteLine($"Количество квадратов нечётных чисел: {oddSquares}");
     }
 
-    // Задание 5 (Пример для бинарных файлов и структур с XML сериализацией)
+    // Задание 5
     [Serializable]
     public struct Toy
     {
@@ -95,50 +146,30 @@ public static class TasksClass
 
         public string Name
         {
-            get
-            {
-                return _name;
-            }
-            set
-            {
-                _name = value;
-            }
+            get { return _name; }
+            set { _name = value; }
         }
         public double Price
         {
-            get
-            {
-                return _price;
-            }
-            set
-            {
-                _price = value;
-            }
+            get { return _price; }
+            set { _price = value; }
         }
         public string AgeRange
         {
-            get
-            {
-                return _ageRange;
-            }
-            set
-            {
-                _ageRange = value;
-            }
+            get { return _ageRange; }
+            set { _ageRange = value; }
         }
     }
-
-
 
     public static void Task5()
     {
         string fileName = "toys.xml";
         List<Toy> toys = new List<Toy>
-    {
-        new Toy { Name = "Мишка", Price = 100, AgeRange = "2-4" },
-        new Toy { Name = "Медведь", Price = 200, AgeRange = "5-7" },
-        new Toy { Name = "Незнайка", Price = 300, AgeRange = "2-4" }
-    };
+        {
+            new Toy { Name = "Мишка", Price = 100, AgeRange = "2-4" },
+            new Toy { Name = "Медведь", Price = 200, AgeRange = "5-7" },
+            new Toy { Name = "Незнайка", Price = 300, AgeRange = "2-4" }
+        };
 
         XmlSerializer serializer = new XmlSerializer(typeof(List<Toy>));
         using (StreamWriter writer = new StreamWriter(fileName))
@@ -155,8 +186,9 @@ public static class TasksClass
         Toy mostExpensiveToy = new Toy();
         double maxPrice = 0;
 
-        foreach (var toy in deserializedToys)
+        for (int i = 0; i < deserializedToys.Count; i++)
         {
+            Toy toy = deserializedToys[i];
             if (toy.AgeRange == "2-4" && toy.Price > maxPrice)
             {
                 mostExpensiveToy = toy;
@@ -174,26 +206,69 @@ public static class TasksClass
         }
     }
 
-
     // Задание 6
     public static void Task6()
     {
         List<int> L1 = new List<int> { 1, 2, 3, 4, 5 };
         List<int> L2 = new List<int> { 3, 4, 5, 6, 7 };
-        var commonElements = L1.Intersect(L2).ToList();
-        Console.WriteLine($"Элементы, которые входят одновременно в оба списка: {string.Join(", ", commonElements)}");
+        List<int> commonElements = new List<int>();
+
+        for (int i = 0; i < L1.Count; i++)
+        {
+            for (int j = 0; j < L2.Count; j++)
+            {
+                if (L1[i] == L2[j])
+                {
+                    bool exists = false;
+                    for (int k = 0; k < commonElements.Count; k++)
+                    {
+                        if (commonElements[k] == L1[i])
+                        {
+                            exists = true;
+                            break;
+                        }
+                    }
+                    if (!exists)
+                    {
+                        commonElements.Add(L1[i]);
+                    }
+                }
+            }
+        }
+
+        Console.WriteLine("Элементы, которые входят одновременно в оба списка: ");
+        for (int i = 0; i < commonElements.Count; i++)
+        {
+            Console.Write((i < commonElements.Count - 1) ? $"{commonElements[i]}, " : $"{commonElements[i]}");
+        }
+        Console.WriteLine();
     }
 
     // Задание 7
     public static void Task7()
     {
         LinkedList<int> L = new LinkedList<int>(new[] { 1, 2, 3, 4, 5, 10 });
-        var tempList = new LinkedList<int>(L.Reverse());
-        foreach (var item in tempList)
+        LinkedList<int> tempList = new LinkedList<int>();
+        LinkedListNode<int> node = L.Last;
+        while (node != null)
         {
-            L.AddLast(item);
+            tempList.AddLast(node.Value);
+            node = node.Previous;
         }
-        Console.WriteLine($"Новый список: {string.Join(", ", L)}");
+        node = tempList.First;
+        while (node != null)
+        {
+            L.AddLast(node.Value);
+            node = node.Next;
+        }
+        Console.WriteLine("Новый список: ");
+        node = L.First;
+        while (node != null)
+        {
+            Console.Write(node.Next != null ? $"{node.Value}, " : $"{node.Value}");
+            node = node.Next;
+        }
+        Console.WriteLine();
     }
 
     // Задание 9
@@ -202,8 +277,9 @@ public static class TasksClass
         string text = "Надеюсь сдам ЯПОНский";
         HashSet<char> distinctLetters = new HashSet<char>();
 
-        foreach (char c in text)
+        for (int i = 0; i < text.Length; i++)
         {
+            char c = text[i];
             if (Char.IsLetter(c))
             {
                 distinctLetters.Add(Char.ToLower(c));
@@ -213,45 +289,57 @@ public static class TasksClass
         Console.WriteLine($"Количество разных букв в тексте: {distinctLetters.Count}");
     }
 
-
     // Задание 10
     public static void Task10()
     {
-
         int N = InputValidator.ValidateNumberOfAthletes();
-
         int M = InputValidator.ValidateNumberOfSports();
-
         Dictionary<string, (int sum, int[] scores)> scores = new Dictionary<string, (int sum, int[] scores)>();
 
         for (int i = 0; i < N; i++)
         {
             var (fullName, individualScores) = InputValidator.ValidateAthleteData(M);
             int sum = 0;
-            foreach (var score in individualScores)
+            for (int j = 0; j < individualScores.Length; j++)
             {
-                sum += score;
+                sum += individualScores[j];
             }
-
             scores[fullName] = (sum, individualScores);
         }
 
-        var sortedScores = new List<KeyValuePair<string, (int sum, int[] scores)>>(scores);
-        sortedScores.Sort((x, y) => y.Value.sum.CompareTo(x.Value.sum));
+        KeyValuePair<string, (int sum, int[] scores)>[] sortedScores =
+            new KeyValuePair<string, (int sum, int[] scores)>[scores.Count];
+        int index = 0;
+        foreach (var pair in scores)
+        {
+            sortedScores[index] = pair;
+            index++;
+        }
+
+        for (int i = 0; i < sortedScores.Length - 1; i++)
+        {
+            for (int j = 0; j < sortedScores.Length - i - 1; j++)
+            {
+                if (sortedScores[j].Value.sum < sortedScores[j + 1].Value.sum)
+                {
+                    var temp = sortedScores[j];
+                    sortedScores[j] = sortedScores[j + 1];
+                    sortedScores[j + 1] = temp;
+                }
+            }
+        }
 
         Console.WriteLine("\nРезультаты соревнований (сортировка по убыванию суммы баллов):");
         int place = 1;
-        int previousScore = -1; 
-        foreach (var score in sortedScores)
+        int previousScore = -1;
+        for (int i = 0; i < sortedScores.Length; i++)
         {
-            if (score.Value.sum != previousScore)
+            if (sortedScores[i].Value.sum != previousScore)
             {
-                place = sortedScores.IndexOf(score) + 1;
+                place = i + 1;
             }
-
-            Console.WriteLine($"{score.Key} {score.Value.sum} {place}");
-
-            previousScore = score.Value.sum;
+            Console.WriteLine($"{sortedScores[i].Key} {sortedScores[i].Value.sum} {place}");
+            previousScore = sortedScores[i].Value.sum;
         }
     }
 }
