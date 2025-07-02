@@ -5,14 +5,14 @@ using System.Text;
 public class Class
 {
     // Генерация случайных чисел для задания 1 (по одному числу в строке)
-    public static void FillRandomDataToFile(string fileName, int lineCount, string separator = "\n")
+    public static void FillRandomDataToFile(string fileName, int lineCount)
     {
         Random rand = new Random();
         using (StreamWriter writer = new StreamWriter(fileName))
         {
             for (int i = 0; i < lineCount; i++)
             {
-                writer.WriteLine(rand.Next(1, 100)); // Заполняем случайными числами от 1 до 99
+                writer.WriteLine(rand.Next(1, 100));
             }
         }
     }

@@ -6,7 +6,7 @@ using System.Xml.Serialization;
 public static class TasksClass
 {
     // Задание 1
-    public static void Task1()
+    public static void Task1()//
     {
         string fileName = "task1.txt";
         Class.FillRandomDataToFile(fileName, 10);
@@ -32,7 +32,7 @@ public static class TasksClass
     }
 
     // Задание 2
-    public static void Task2()
+    public static void Task2()//
     {
         string fileName = "task2.txt";
         Class.FillRandomDataToFileWithMultipleNumbers(fileName, 5, 4);
@@ -63,7 +63,7 @@ public static class TasksClass
     }
 
     // Задание 3
-    public static void Task3()
+    public static void Task3()//
     {
         string inputFileName = "task3.txt";
         string outputFileName = "task3_output.txt";
@@ -95,8 +95,7 @@ public static class TasksClass
         {
             while (reader.BaseStream.Position < reader.BaseStream.Length)
             {
-                int num = reader.ReadInt32();
-                generatedNumbers[index++] = num;
+                generatedNumbers[index++] = reader.ReadInt32();
             }
         }
 
@@ -108,18 +107,15 @@ public static class TasksClass
         Console.WriteLine();
 
         int oddSquares = 0;
-        using (BinaryReader reader = new BinaryReader(File.Open(fileName, FileMode.Open)))
+        for (int i = 0; i < generatedNumbers.Length; i++)
         {
-            while (reader.BaseStream.Position < reader.BaseStream.Length)
+            int number = generatedNumbers[i];
+            if (number % 2 != 0)
             {
-                int number = reader.ReadInt32();
-                if (number % 2 != 0)
+                double sqrt = Math.Sqrt(number);
+                if (sqrt == (int)sqrt)
                 {
-                    double sqrt = Math.Sqrt(number);
-                    if (sqrt == (int)sqrt)
-                    {
-                        oddSquares++;
-                    }
+                    oddSquares++;
                 }
             }
         }
@@ -128,30 +124,6 @@ public static class TasksClass
     }
 
     // Задание 5
-    [Serializable]
-    public struct Toy
-    {
-        private string _name;
-        private double _price;
-        private string _ageRange;
-
-        public string Name
-        {
-            get { return _name; }
-            set { _name = value; }
-        }
-        public double Price
-        {
-            get { return _price; }
-            set { _price = value; }
-        }
-        public string AgeRange
-        {
-            get { return _ageRange; }
-            set { _ageRange = value; }
-        }
-    }
-
     public static void Task5()
     {
         string fileName = "toys.xml";
