@@ -9,10 +9,8 @@ public static class TasksClass
     public static void Task1()
     {
         string fileName = "task1.txt";
-        // Генерируем случайные данные
         Class.FillRandomDataToFile(fileName, 10);
         string[] lines = File.ReadAllLines(fileName);
-        // Вывод содержимого файла
         Console.WriteLine("Содержимое файла task1.txt:");
         for (int i = 0; i < lines.Length; i++)
         {
@@ -37,10 +35,8 @@ public static class TasksClass
     public static void Task2()
     {
         string fileName = "task2.txt";
-        // Генерируем случайные данные
         Class.FillRandomDataToFileWithMultipleNumbers(fileName, 5, 4);
         string[] lines = File.ReadAllLines(fileName);
-        // Вывод содержимого файла
         Console.WriteLine("Содержимое файла task2.txt:");
         for (int i = 0; i < lines.Length; i++)
         {
@@ -71,7 +67,6 @@ public static class TasksClass
     {
         string inputFileName = "task3.txt";
         string outputFileName = "task3_output.txt";
-        // Вывод содержимого входного файла
         Console.WriteLine("Содержимое файла task3.txt:");
         string[] lines = File.ReadAllLines(inputFileName);
         for (int i = 0; i < lines.Length; i++)
@@ -79,7 +74,6 @@ public static class TasksClass
             Console.WriteLine(lines[i]);
         }
         Class.CopyLinesWithoutLatinLetters(inputFileName, outputFileName);
-        // Вывод содержимого выходного файла
         Console.WriteLine("Содержимое файла task3_output.txt (строки без латинских букв):");
         lines = File.ReadAllLines(outputFileName);
         for (int i = 0; i < lines.Length; i++)
@@ -93,12 +87,10 @@ public static class TasksClass
     public static void Task4()
     {
         string fileName = "task4.bin";
-        // Генерируем случайные данные в бинарный файл
         Class.FillRandomBinaryData(fileName, 10);
         int[] generatedNumbers = new int[10];
         int index = 0;
 
-        // Читаем данные для вывода
         using (BinaryReader reader = new BinaryReader(File.Open(fileName, FileMode.Open)))
         {
             while (reader.BaseStream.Position < reader.BaseStream.Length)
@@ -108,7 +100,6 @@ public static class TasksClass
             }
         }
 
-        // Вывод содержимого бинарного файла
         Console.WriteLine("Содержимое файла task4.bin (сгенерированные числа):");
         for (int i = 0; i < generatedNumbers.Length; i++)
         {
@@ -276,14 +267,12 @@ public static class TasksClass
     {
         string fileName = "task8.txt";
 
-        // Проверка существования файла
         if (!File.Exists(fileName))
         {
             Console.WriteLine($"Ошибка: Файл {fileName} не найден.");
             return;
         }
 
-        // Чтение и вывод содержимого файла
         Console.WriteLine("Содержимое файла task8.txt:");
         string[] lines = File.ReadAllLines(fileName);
         for (int i = 0; i < lines.Length; i++)
@@ -291,14 +280,12 @@ public static class TasksClass
             Console.WriteLine(lines[i]);
         }
 
-        // Проверка, что файл содержит хотя бы одну строку (список ТРЦ)
         if (lines.Length == 0)
         {
             Console.WriteLine("Ошибка: Файл пуст.");
             return;
         }
 
-        // Читаем список всех ТРЦ из первой строки
         string[] allTRCs = lines[0].Split(' ');
         if (allTRCs.Length == 0)
         {
@@ -306,17 +293,14 @@ public static class TasksClass
             return;
         }
 
-        // Список для хранения ТРЦ, посещенных всеми студентами
         List<string> allVisited = new List<string>();
         for (int i = 0; i < allTRCs.Length; i++)
         {
             allVisited.Add(allTRCs[i]);
         }
 
-        // Список для хранения ТРЦ, посещенных хотя бы одним студентом
         List<string> someVisited = new List<string>();
 
-        // Обработка данных студентов (начиная со второй строки)
         for (int i = 1; i < lines.Length; i++)
         {
             string[] parts = lines[i].Split(' ');
@@ -331,7 +315,6 @@ public static class TasksClass
                 visitedTRCs[j - 1] = parts[j];
             }
 
-            // Обновляем список ТРЦ, посещенных всеми
             for (int j = 0; j < allVisited.Count; j++)
             {
                 bool found = false;
@@ -350,7 +333,6 @@ public static class TasksClass
                 }
             }
 
-            // Добавляем посещенные ТРЦ в someVisited, если их там еще нет
             for (int j = 0; j < visitedTRCs.Length; j++)
             {
                 bool exists = false;
@@ -369,7 +351,6 @@ public static class TasksClass
             }
         }
 
-        // Исключаем ТРЦ, посещенные всеми, из списка someVisited
         for (int i = 0; i < someVisited.Count; i++)
         {
             for (int j = 0; j < allVisited.Count; j++)
@@ -383,7 +364,6 @@ public static class TasksClass
             }
         }
 
-        // Находим ТРЦ, которые никто не посещал
         List<string> notVisited = new List<string>();
         for (int i = 0; i < allTRCs.Length; i++)
         {
@@ -413,7 +393,6 @@ public static class TasksClass
             }
         }
 
-        // Вывод результатов
         Console.WriteLine("\nТРЦ, посещенные всеми студентами:");
         if (allVisited.Count == 0)
         {

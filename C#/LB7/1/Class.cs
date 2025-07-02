@@ -28,7 +28,7 @@ public class Class
                 string[] numbers = new string[numbersPerLine];
                 for (int j = 0; j < numbersPerLine; j++)
                 {
-                    numbers[j] = rand.Next(1, 9).ToString();
+                    numbers[j] = rand.Next(1, 10).ToString();
                 }
                 writer.WriteLine(string.Join(" ", numbers));
             }
@@ -70,7 +70,7 @@ public class Class
         {
             for (int i = 0; i < numberCount; i++)
             {
-                writer.Write(rand.Next(1, 100)); // Заполняем случайными числами от 1 до 99
+                writer.Write(rand.Next(1, 100)); 
             }
         }
     }
