@@ -6,7 +6,7 @@ using System.Xml.Serialization;
 public static class TasksClass
 {
     // Задание 1
-    public static void Task1()//
+    public static void Task1()//+
     {
         string fileName = "task1.txt";
         Class.FillRandomDataToFile(fileName, 10);
@@ -32,7 +32,7 @@ public static class TasksClass
     }
 
     // Задание 2
-    public static void Task2()//
+    public static void Task2()//+
     {
         string fileName = "task2.txt";
         Class.FillRandomDataToFileWithMultipleNumbers(fileName, 5, 4);
@@ -63,7 +63,7 @@ public static class TasksClass
     }
 
     // Задание 3
-    public static void Task3()//
+    public static void Task3()//+
     {
         string inputFileName = "task3.txt";
         string outputFileName = "task3_output.txt";
@@ -98,17 +98,11 @@ public static class TasksClass
                 generatedNumbers[index++] = reader.ReadInt32();
             }
         }
-
+        int oddSquares = 0;
         Console.WriteLine("Содержимое файла task4.bin (сгенерированные числа):");
         for (int i = 0; i < generatedNumbers.Length; i++)
         {
             Console.Write((i < generatedNumbers.Length - 1) ? $"{generatedNumbers[i]}, " : $"{generatedNumbers[i]}");
-        }
-        Console.WriteLine();
-
-        int oddSquares = 0;
-        for (int i = 0; i < generatedNumbers.Length; i++)
-        {
             int number = generatedNumbers[i];
             if (number % 2 != 0)
             {
@@ -119,7 +113,7 @@ public static class TasksClass
                 }
             }
         }
-
+        Console.WriteLine();
         Console.WriteLine($"Количество квадратов нечётных чисел: {oddSquares}");
     }
 
@@ -170,7 +164,7 @@ public static class TasksClass
     }
 
     // Задание 6
-    public static void Task6()
+    public static void Task6()//Лютой тип данных, а не только числа
     {
         List<int> L1 = new List<int> { 1, 2, 3, 4, 5 };
         List<int> L2 = new List<int> { 3, 4, 5, 6, 7 };
@@ -208,11 +202,14 @@ public static class TasksClass
     }
 
     // Задание 7
-    public static void Task7()
+    public static void Task7()//Лютой тип данных, а не только числа
     {
-        LinkedList<int> L = new LinkedList<int>(new[] { 1, 2, 3, 4, 5, 10 });
-        LinkedList<int> tempList = new LinkedList<int>();
-        LinkedListNode<int> node = L.Last;
+        LinkedList<string> L = new LinkedList<string>(new[] { "1", "a", "b", "c", "d", "e", "f", "8" });
+        LinkedList<string> tempList = new LinkedList<string>();
+        LinkedListNode<string> node = L.Last;
+        //LinkedList<int> L = new LinkedList<int>(new[] { 1, 2, 3, 4, 5, 10 });
+        //LinkedList<int> tempList = new LinkedList<int>();
+        //LinkedListNode<int> node = L.Last;
         while (node != null)
         {
             tempList.AddLast(node.Value);
@@ -427,20 +424,45 @@ public static class TasksClass
     // Задание 10
     public static void Task10()
     {
-        int N = InputValidator.ValidateNumberOfAthletes();
-        int M = InputValidator.ValidateNumberOfSports();
+        string fileName = "task10.txt"; // Имя файла с данными
+        string[] lines = File.ReadAllLines(fileName);
+
+        
+        int N = int.Parse(lines[0]);
+        int M = int.Parse(lines[1]);
+
+        //int N = InputValidator.ValidateNumberOfAthletes();
+        //int M = InputValidator.ValidateNumberOfSports();
+
         Dictionary<string, (int sum, int[] scores)> scores = new Dictionary<string, (int sum, int[] scores)>();
 
         for (int i = 0; i < N; i++)
         {
-            var (fullName, individualScores) = InputValidator.ValidateAthleteData(M);
+            string line = lines[i + 2]; // Начинаем с третьей строки
+            string[] parts = line.Split(' ');
+            string fullName = parts[0] + " " + parts[1]; // Фамилия и имя
+            int[] individualScores = new int[M];
             int sum = 0;
-            for (int j = 0; j < individualScores.Length; j++)
+
+            // Считываем баллы
+            for (int j = 0; j < M; j++)
             {
+                individualScores[j] = int.Parse(parts[j + 2]);
                 sum += individualScores[j];
             }
             scores[fullName] = (sum, individualScores);
         }
+
+        //for (int i = 0; i < N; i++)
+        //{
+        //    var (fullName, individualScores) = InputValidator.ValidateAthleteData(M);
+        //    int sum = 0;
+        //    for (int j = 0; j < individualScores.Length; j++)
+        //    {
+        //        sum += individualScores[j];
+        //    }
+        //    scores[fullName] = (sum, individualScores);
+        //}
 
         KeyValuePair<string, (int sum, int[] scores)>[] sortedScores =
             new KeyValuePair<string, (int sum, int[] scores)>[scores.Count];
