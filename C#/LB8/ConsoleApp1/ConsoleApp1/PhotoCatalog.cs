@@ -4,122 +4,127 @@ using System.IO;
 using System.Linq;
 using System.Text;
 
-public class PhotoCatalog
+namespace PhotoCatalogApp
 {
-    private const string FilePath = "photos.bin";  // Бинарный файл
-
-    public List<Photo> LoadFromFile()
+    public class PhotoCatalog
     {
-        try
+        private const string FilePath = "photos.bin";
+
+        public List<Photo> LoadFromFile()
         {
-            if (File.Exists(FilePath))
+            try
             {
-                var photos = new List<Photo>();
-                using (var fs = new FileStream(FilePath, FileMode.Open))
-                using (var reader = new BinaryReader(fs, Encoding.UTF8))
+                if (File.Exists(FilePath))
                 {
-                    int count = reader.ReadInt32();
-                    for (int i = 0; i < count; i++)
+                    var photos = new List<Photo>();
+                    using (var fs = new FileStream(FilePath, FileMode.Open))
+                    using (var reader = new BinaryReader(fs, Encoding.UTF8))
                     {
-                        var photo = new Photo
+                        int count = reader.ReadInt32();
+                        for (int i = 0; i < count; i++)
                         {
-                            ID = reader.ReadInt32(),
-                            Title = reader.ReadString(),
-                            DateTaken = new DateTime(reader.ReadInt64()),
-                            FileSize = reader.ReadInt64(),
-                            Resolution = reader.ReadString()
-                        };
-                        photos.Add(photo);
+                            var photo = new Photo
+                            {
+                                Id = reader.ReadInt32(),
+                                Title = reader.ReadString(),
+                                DateTaken = new DateTime(reader.ReadInt64()),
+                                FileSize = reader.ReadInt64(),
+                                Resolution = reader.ReadString()
+                            };
+                            photos.Add(photo);
+                        }
                     }
+                    return photos;
                 }
-                return photos;
+                else
+                {
+                    Console.WriteLine("Файл не найден. Создан новый каталог.");
+                    return new List<Photo>();
+                }
             }
-            else
+            catch (Exception ex)
             {
-                Console.WriteLine("Файл не найден. Создан новый каталог.");
+                Console.WriteLine($"Ошибка при загрузке файла: {ex.Message}");
                 return new List<Photo>();
             }
         }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"Ошибка при загрузке файла: {ex.Message}");
-            return new List<Photo>();
-        }
-    }
 
-    public void SaveToFile(List<Photo> photos)
-    {
-        try
+        public void SaveToFile(List<Photo> photos)
         {
-            using (var fs = new FileStream(FilePath, FileMode.Create))
-            using (var writer = new BinaryWriter(fs, Encoding.UTF8))
+            try
             {
-                writer.Write(photos.Count);
-                foreach (var photo in photos)
+                using (var fs = new FileStream(FilePath, FileMode.Create))
+                using (var writer = new BinaryWriter(fs, Encoding.UTF8))
                 {
-                    writer.Write(photo.ID);
-                    writer.Write(photo.Title);
-                    writer.Write(photo.DateTaken.Ticks);
-                    writer.Write(photo.FileSize);
-                    writer.Write(photo.Resolution);
+                    writer.Write(photos.Count);
+                    foreach (var photo in photos)
+                    {
+                        writer.Write(photo.Id);
+                        writer.Write(photo.Title);
+                        writer.Write(photo.DateTaken.Ticks);
+                        writer.Write(photo.FileSize);
+                        writer.Write(photo.Resolution);
+                    }
                 }
+                Console.WriteLine("Каталог успешно сохранён.");
             }
-            Console.WriteLine("Каталог успешно сохранён.");
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Ошибка при сохранении файла: {ex.Message}");
+            }
         }
-        catch (Exception ex)
+
+        public void View(List<Photo> photos)
         {
-            Console.WriteLine($"Ошибка при сохранении файла: {ex.Message}");
+            if (photos.Count == 0)
+            {
+                Console.WriteLine("Каталог пуст.");
+                return;
+            }
+            foreach (var photo in photos)
+            {
+                Console.WriteLine(photo.ToString());
+            }
         }
-    }
 
-    public void View(List<Photo> photos)
-    {
-        if (photos.Count == 0)
+        public bool DeleteById(List<Photo> photos, int id)
         {
-            Console.WriteLine("Каталог пуст.");
-            return;
+            var photoToRemove = photos.FirstOrDefault(p => p.Id == id);
+            if (photoToRemove != null)
+            {
+                photos.Remove(photoToRemove);
+                return true;
+            }
+            return false;
         }
 
-        foreach (var photo in photos)
+        public void Add(List<Photo> photos, Photo photo)
         {
-            Console.WriteLine(photo.ToString());
+            photos.Add(photo);
         }
-    }
 
-    public bool DeleteById(List<Photo> photos, int id)
-    {
-        var photoToRemove = photos.FirstOrDefault(p => p.ID == id);
-        if (photoToRemove != null)
+        public List<Photo> GetPhotosAfterDate(List<Photo> photos, DateTime date)
         {
-            photos.Remove(photoToRemove);
-            return true;
+            return photos.Where(p => p.DateTaken > date).ToList();
         }
-        return false;
-    }
 
-    public void Add(List<Photo> photos, Photo photo)
-    {
-        photos.Add(photo);
-    }
+        public List<Photo> GetPhotosLargerThanSize(List<Photo> photos, long size)
+        {
+            return photos.Where(p => p.FileSize > size).ToList();
+        }
 
-    public List<Photo> GetPhotosAfterDate(List<Photo> photos, DateTime date)
-    {
-        return photos.Where(p => p.DateTaken > date).ToList();
-    }
+        public int GetTotalPhotosCount(List<Photo> photos)
+        {
+            return photos.Count;
+        }
 
-    public List<Photo> GetPhotosLargerThanSize(List<Photo> photos, long size)
-    {
-        return photos.Where(p => p.FileSize > size).ToList();
-    }
-
-    public int GetTotalPhotosCount(List<Photo> photos)
-    {
-        return photos.Count;
-    }
-
-    public double GetAverageFileSize(List<Photo> photos)
-    {
-        if (photos.Count == 0) return 0;
-        return photos.Average(p => p.FileSize);
+        public double GetAverageFileSize(List<Photo> photos)
+        {
+            if (photos.Count == 0)
+            {
+                return 0;
+            }
+            return photos.Average(p => p.FileSize);
+        }
     }
 }

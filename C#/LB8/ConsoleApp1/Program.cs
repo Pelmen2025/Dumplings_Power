@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Text.Json;
 
 namespace PhotoCatalogApp
 {
@@ -77,11 +79,13 @@ namespace PhotoCatalogApp
         static void InitializeTestData(PhotoCatalog catalog, List<Photo> photos)
         {
             photos.Clear();
+
             photos.Add(new Photo(1, "Sunset Beach", new DateTime(2023, 6, 15), 5242880, "1920x1080"));
             photos.Add(new Photo(2, "Mountain View", new DateTime(2024, 1, 20), 8388608, "2560x1440"));
             photos.Add(new Photo(3, "City Night", new DateTime(2025, 3, 10), 2097152, "1280x720"));
             photos.Add(new Photo(4, "Forest Path", new DateTime(2022, 11, 5), 10485760, "3840x2160"));
             photos.Add(new Photo(5, "Portrait", new DateTime(2024, 7, 30), 3145728, "1600x900"));
+
             catalog.SaveToFile(photos);
             Console.WriteLine("Тестовые данные инициализированы и сохранены в photos.bin");
         }
@@ -98,6 +102,7 @@ namespace PhotoCatalogApp
             long size = long.Parse(Console.ReadLine());
             Console.Write("Введите разрешение (например, 1920x1080): ");
             string resolution = Console.ReadLine();
+
             Photo newPhoto = new Photo(id, title, date, size, resolution);
             catalog.Add(photos, newPhoto);
             Console.WriteLine("Фото добавлено.");
