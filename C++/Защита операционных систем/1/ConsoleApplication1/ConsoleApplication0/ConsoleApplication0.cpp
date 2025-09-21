@@ -1,6 +1,7 @@
 ﻿#include <windows.h>
 #include <iostream>
 #include <tchar.h>
+#include <locale.h>
 
 using namespace std;
 
