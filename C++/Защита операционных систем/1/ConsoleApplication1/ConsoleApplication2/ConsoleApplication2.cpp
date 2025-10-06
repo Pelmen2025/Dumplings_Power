@@ -20,9 +20,6 @@ DWORD WINAPI create_row(LPVOID param)
     // Уникальная инициализация генератора для каждого потока
     srand(time(NULL) + GetCurrentThreadId() + row_num * 13);
 
-    // Небольшая задержка для дополнительной рандомизации
-    Sleep(row_num * 2);
-
     for (int j = 0; j < n; j++)
         mtx[row_num][j] = (float)(rand() % 100 + 1);  // от 1 до 100
 
