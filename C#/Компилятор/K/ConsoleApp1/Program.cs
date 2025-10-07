@@ -34,8 +34,7 @@ namespace PascalLexer
                 lexer.Analyze();
                 Console.WriteLine($"\n✓ Всего обработано токенов: {lexer.TokenCodes.Count}");
 
-                // Проверяем только критические лексические ошибки (1, 7, 12, 203)
-                // Ошибка 2 (отсутствие точки) - это синтаксическая ошибка
+                
                 var criticalErrors = InputOutput.AllErrors
                     .Where(e => e.ErrorCode == 1 || e.ErrorCode == 7 ||
                                e.ErrorCode == 12 || e.ErrorCode == 203)

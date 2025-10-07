@@ -75,7 +75,6 @@ namespace PascalLexer
 
         private void ParseProgram()
         {
-            // program -> PROGRAM ident ; block .
             if (Accept(LexicalAnalyzer.programsy))
             {
                 Expect(LexicalAnalyzer.ident, "Ожидается имя программы");
@@ -83,12 +82,10 @@ namespace PascalLexer
             }
 
             ParseBlock();
-            Expect(LexicalAnalyzer.point, "Ожидается '.' в конце программы");
         }
 
         private void ParseBlock()
         {
-            // block -> [var-section] compound-statement
             if (current_token_ == LexicalAnalyzer.varsy)
             {
                 ParseVarSection();
@@ -99,7 +96,6 @@ namespace PascalLexer
 
         private void ParseVarSection()
         {
-            // var-section -> VAR var-declaration { ; var-declaration }
             Accept(LexicalAnalyzer.varsy);
 
             ParseVarDeclaration();
@@ -119,7 +115,6 @@ namespace PascalLexer
 
         private void ParseVarDeclaration()
         {
-            // var-declaration -> ident { , ident } : type
             if (!Accept(LexicalAnalyzer.ident))
             {
                 Error("Ожидается имя переменной");
@@ -137,7 +132,6 @@ namespace PascalLexer
 
         private void ParseType()
         {
-            // type -> INTEGER | REAL | CHAR
             if (current_token_ == LexicalAnalyzer.integersy ||
                 current_token_ == LexicalAnalyzer.realsy ||
                 current_token_ == LexicalAnalyzer.charsy)
@@ -152,7 +146,6 @@ namespace PascalLexer
 
         private void ParseCompoundStatement()
         {
-            // compound-statement -> BEGIN statement { ; statement } END
             Expect(LexicalAnalyzer.beginsy, "Ожидается 'begin'");
 
             ParseStatement();
@@ -170,8 +163,6 @@ namespace PascalLexer
 
         private void ParseStatement()
         {
-            // statement -> assignment | compound-statement | while-statement | 
-            //              for-statement | repeat-statement
 
             if (current_token_ == LexicalAnalyzer.ident)
             {
@@ -199,13 +190,12 @@ namespace PascalLexer
             }
             else
             {
-                // Пустой оператор допустим
+                
             }
         }
 
         private void ParseAssignment()
         {
-            // assignment -> ident := expression
             Expect(LexicalAnalyzer.ident, "Ожидается идентификатор");
             Expect(LexicalAnalyzer.assign, "Ожидается ':='");
             ParseExpression();
@@ -213,7 +203,6 @@ namespace PascalLexer
 
         private void ParseExpression()
         {
-            // expression -> simple-expression [ relop simple-expression ]
             ParseSimpleExpression();
 
             if (IsRelationalOperator(current_token_))
@@ -235,7 +224,6 @@ namespace PascalLexer
 
         private void ParseSimpleExpression()
         {
-            // simple-expression -> [+ | -] term { addop term }
             if (current_token_ == LexicalAnalyzer.plus ||
                 current_token_ == LexicalAnalyzer.minus)
             {
@@ -260,7 +248,6 @@ namespace PascalLexer
 
         private void ParseTerm()
         {
-            // term -> factor { mulop factor }
             ParseFactor();
 
             while (IsMultOperator(current_token_))
@@ -281,7 +268,6 @@ namespace PascalLexer
 
         private void ParseFactor()
         {
-            // factor -> ident | number | ( expression ) | NOT factor
             if (current_token_ == LexicalAnalyzer.ident)
             {
                 NextToken();
@@ -312,7 +298,6 @@ namespace PascalLexer
 
         private void ParseWhileStatement()
         {
-            // while-statement -> WHILE expression DO statement
             Accept(LexicalAnalyzer.whilesy);
             ParseExpression();
             Expect(LexicalAnalyzer.dosy, "Ожидается 'do' после условия while");
@@ -321,7 +306,6 @@ namespace PascalLexer
 
         private void ParseForStatement()
         {
-            // for-statement -> FOR ident := expression TO|DOWNTO expression DO statement
             Accept(LexicalAnalyzer.forsy);
             Expect(LexicalAnalyzer.ident, "Ожидается переменная цикла");
             Expect(LexicalAnalyzer.assign, "Ожидается ':='");
@@ -339,7 +323,6 @@ namespace PascalLexer
 
         private void ParseRepeatStatement()
         {
-            // repeat-statement -> REPEAT statement { ; statement } UNTIL expression
             Accept(LexicalAnalyzer.repeatsy);
 
             ParseStatement();
@@ -358,7 +341,6 @@ namespace PascalLexer
 
         private void ParseIfStatement()
         {
-            // if-statement -> IF expression THEN statement [ELSE statement]
             Accept(LexicalAnalyzer.ifsy);
             ParseExpression();
             Expect(LexicalAnalyzer.thensy, "Ожидается 'then'");
