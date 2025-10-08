@@ -20,6 +20,17 @@ namespace PascalLexer
             errors_ = new List<SyntaxError>();
         }
 
+        struct SyntaxError
+        {
+            public int Position { get; }
+            public string Message { get; }
+
+            public SyntaxError(int position, string message)
+            {
+                Position = position;
+                Message = message;
+            }
+        }
         public void Analyze()
         {
             Console.WriteLine("\n=== СИНТАКСИЧЕСКИЙ АНАЛИЗ ===\n");
@@ -370,18 +381,6 @@ namespace PascalLexer
                     Console.WriteLine($"{i + 1}. {errors_[i].Message}");
                 }
             }
-        }
-    }
-
-    struct SyntaxError
-    {
-        public int Position { get; }
-        public string Message { get; }
-
-        public SyntaxError(int position, string message)
-        {
-            Position = position;
-            Message = message;
         }
     }
 }
