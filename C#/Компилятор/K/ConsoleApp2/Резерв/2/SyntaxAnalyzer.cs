@@ -66,17 +66,11 @@ namespace PascalAnalyzer
             if (_currentSymbol != LexicalAnalyzer.beginsy && _currentSymbol != 0)
             {
                 ReportError(ERR_EXPECTED_BEGIN, "Ожидалось ключевое слово 'begin'");
-                // Пропускаем токены до begin или конца файла
-                while (_currentSymbol != LexicalAnalyzer.beginsy && _currentSymbol != 0)
-                {
-                    NextSymbol();
-                }
+                NextSymbol();
+                return;
             }
 
-            if (_currentSymbol == LexicalAnalyzer.beginsy)
-            {
-                ParseCompoundStatement();
-            }
+            ParseCompoundStatement();
         }
 
         private void ParseVariableDeclarations()
@@ -92,26 +86,14 @@ namespace PascalAnalyzer
             while (_currentSymbol == LexicalAnalyzer.ident && _currentSymbol != 0)
             {
                 ParseVariableDeclaration();
-
-                // Ожидаем точку с запятой после объявления
                 if (_currentSymbol == LexicalAnalyzer.semicolon)
                 {
                     NextSymbol();
                 }
-                else if (_currentSymbol != LexicalAnalyzer.beginsy && _currentSymbol != 0)
+                else if (_currentSymbol != 0)
                 {
-                    ReportError(ERR_EXPECTED_SEMICOLON, "Ожидалась точка с запятой после объявления переменной");
-                    // Пропускаем до следующей точки с запятой, begin или конца
-                    while (_currentSymbol != LexicalAnalyzer.semicolon &&
-                           _currentSymbol != LexicalAnalyzer.beginsy &&
-                           _currentSymbol != 0)
-                    {
-                        NextSymbol();
-                    }
-                    if (_currentSymbol == LexicalAnalyzer.semicolon)
-                    {
-                        NextSymbol();
-                    }
+                    ReportError(ERR_EXPECTED_SEMICOLON, "Ожидалась точка с запятой");
+                    return; // Завершаем разбор переменных, чтобы избежать каскадных ошибок
                 }
             }
         }
@@ -119,8 +101,6 @@ namespace PascalAnalyzer
         private void ParseVariableDeclaration()
         {
             Console.WriteLine("  Анализ объявления переменной...");
-
-            // Читаем список идентификаторов
             do
             {
                 if (_currentSymbol != LexicalAnalyzer.ident)
@@ -129,7 +109,6 @@ namespace PascalAnalyzer
                     return;
                 }
                 NextSymbol();
-
                 if (_currentSymbol == LexicalAnalyzer.comma)
                 {
                     NextSymbol();
@@ -138,35 +117,18 @@ namespace PascalAnalyzer
                 {
                     break;
                 }
-            } while (_currentSymbol == LexicalAnalyzer.ident);
+            } while (_currentSymbol == LexicalAnalyzer.ident && _currentSymbol != 0);
 
-            // Ожидаем двоеточие
             if (_currentSymbol != LexicalAnalyzer.colon)
             {
-                ReportError(ERR_EXPECTED_COLON, "Ожидалось двоеточие перед типом");
-
-                // Попытка восстановления: если следующий токен - тип, пропускаем ошибку
-                if (IsSimpleType(_currentSymbol))
-                {
-                    Console.WriteLine($"    Найден тип: {GetTypeName(_currentSymbol)}");
-                    NextSymbol();
-                    return;
-                }
+                ReportError(ERR_EXPECTED_COLON, "Ожидалось двоеточие");
                 return;
             }
             NextSymbol();
 
-            // Ожидаем тип
             if (!IsSimpleType(_currentSymbol))
             {
                 ReportError(ERR_EXPECTED_TYPE, "Ожидался тип (integer, real, char)");
-                // Пропускаем до точки с запятой
-                while (_currentSymbol != LexicalAnalyzer.semicolon &&
-                       _currentSymbol != LexicalAnalyzer.beginsy &&
-                       _currentSymbol != 0)
-                {
-                    NextSymbol();
-                }
                 return;
             }
             Console.WriteLine($"    Найден тип: {GetTypeName(_currentSymbol)}");
@@ -186,25 +148,14 @@ namespace PascalAnalyzer
             while (_currentSymbol != LexicalAnalyzer.endsy && _currentSymbol != 0)
             {
                 ParseStatement();
-
                 if (_currentSymbol == LexicalAnalyzer.semicolon)
                 {
                     NextSymbol();
                 }
                 else if (_currentSymbol != LexicalAnalyzer.endsy && _currentSymbol != 0)
                 {
-                    ReportError(ERR_EXPECTED_SEMICOLON, "Ожидалась точка с запятой после оператора");
-                    // Пропускаем до точки с запятой, end или конца
-                    while (_currentSymbol != LexicalAnalyzer.semicolon &&
-                           _currentSymbol != LexicalAnalyzer.endsy &&
-                           _currentSymbol != 0)
-                    {
-                        NextSymbol();
-                    }
-                    if (_currentSymbol == LexicalAnalyzer.semicolon)
-                    {
-                        NextSymbol();
-                    }
+                    ReportError(ERR_EXPECTED_SEMICOLON, "Ожидалась точка с запятой");
+                    return; // Завершаем разбор операторов, чтобы избежать каскадных ошибок
                 }
             }
 
@@ -231,10 +182,13 @@ namespace PascalAnalyzer
             {
                 ParseWhileStatement();
             }
-            else if (_currentSymbol != LexicalAnalyzer.endsy && _currentSymbol != 0)
+            else
             {
                 ReportError(ERR_EXPECTED_IDENTIFIER, "Ожидался оператор (присваивание, for, while)");
-                NextSymbol();
+                if (_currentSymbol != 0)
+                {
+                    NextSymbol();
+                }
             }
         }
 
@@ -250,15 +204,7 @@ namespace PascalAnalyzer
             NextSymbol();
             if (_currentSymbol != LexicalAnalyzer.assign)
             {
-                ReportError(ERR_EXPECTED_ASSIGN, "Ожидался оператор ':=' вместо '='");
-
-                // Если это знак равенства, пропускаем его как попытку присваивания
-                if (_currentSymbol == LexicalAnalyzer.equal)
-                {
-                    NextSymbol();
-                    ParseExpression();
-                    return;
-                }
+                ReportError(ERR_EXPECTED_ASSIGN, "Ожидался оператор ':='");
                 return;
             }
             NextSymbol();
@@ -270,50 +216,35 @@ namespace PascalAnalyzer
         {
             Console.WriteLine("    Анализ цикла for...");
             NextSymbol();
-
             if (_currentSymbol != LexicalAnalyzer.ident)
             {
-                ReportError(ERR_EXPECTED_IDENTIFIER, "Ожидался идентификатор в цикле for");
+                ReportError(ERR_EXPECTED_IDENTIFIER, "Ожидался идентификатор");
                 return;
             }
             NextSymbol();
 
             if (_currentSymbol != LexicalAnalyzer.assign)
             {
-                ReportError(ERR_EXPECTED_ASSIGN, "Ожидался оператор ':=' в цикле for");
+                ReportError(ERR_EXPECTED_ASSIGN, "Ожидался оператор ':='");
                 return;
             }
             NextSymbol();
 
             ParseExpression();
-
             if (_currentSymbol != LexicalAnalyzer.tosy && _currentSymbol != LexicalAnalyzer.downtosy)
             {
-                ReportError(ERR_EXPECTED_TO_OR_DOWNTO, "Ожидалось 'to' или 'downto' в цикле for");
-                // Пропускаем до do
-                while (_currentSymbol != LexicalAnalyzer.dosy &&
-                       _currentSymbol != LexicalAnalyzer.semicolon &&
-                       _currentSymbol != 0)
-                {
-                    NextSymbol();
-                }
+                ReportError(ERR_EXPECTED_TO_OR_DOWNTO, "Ожидалось 'to' или 'downto'");
+                return;
             }
-            else
-            {
-                NextSymbol();
-            }
+            NextSymbol();
 
             ParseExpression();
-
             if (_currentSymbol != LexicalAnalyzer.dosy)
             {
-                ReportError(ERR_EXPECTED_DO, "Ожидалось ключевое слово 'do' в цикле for");
-                // Продолжаем анализ, считая что do пропущено
+                ReportError(ERR_EXPECTED_DO, "Ожидалось ключевое слово 'do'");
+                return;
             }
-            else
-            {
-                NextSymbol();
-            }
+            NextSymbol();
 
             ParseStatement();
         }
@@ -323,16 +254,12 @@ namespace PascalAnalyzer
             Console.WriteLine("    Анализ цикла while...");
             NextSymbol();
             ParseExpression();
-
             if (_currentSymbol != LexicalAnalyzer.dosy)
             {
-                ReportError(ERR_EXPECTED_DO, "Ожидалось ключевое слово 'do' в цикле while");
-                // Продолжаем анализ, считая что do пропущено
+                ReportError(ERR_EXPECTED_DO, "Ожидалось ключевое слово 'do'");
+                return;
             }
-            else
-            {
-                NextSymbol();
-            }
+            NextSymbol();
 
             ParseStatement();
         }
@@ -386,12 +313,13 @@ namespace PascalAnalyzer
             {
                 NextSymbol();
             }
-            else if (_currentSymbol != LexicalAnalyzer.semicolon &&
-                     _currentSymbol != LexicalAnalyzer.endsy &&
-                     _currentSymbol != 0)
+            else
             {
-                ReportError(ERR_EXPECTED_EXPRESSION, "Ожидалось выражение (идентификатор или константа)");
-                NextSymbol();
+                ReportError(ERR_EXPECTED_EXPRESSION, "Ожидалось выражение");
+                if (_currentSymbol != 0)
+                {
+                    NextSymbol();
+                }
             }
         }
 
