@@ -2,6 +2,7 @@
 #include <iostream>
 #include <time.h>
 #include <tchar.h>
+#include <locale.h>
 
 using namespace std;
 
@@ -30,6 +31,8 @@ DWORD WINAPI func(LPVOID param)
 
 int main(int argc, TCHAR* argv[])
 {
+	setlocale(LC_ALL, "Russian");
+
 	const int n = 10;
 	HANDLE hThread[n];	 //массив потоков
 	DWORD dwThreadID[n]; //массив идентификаторов
