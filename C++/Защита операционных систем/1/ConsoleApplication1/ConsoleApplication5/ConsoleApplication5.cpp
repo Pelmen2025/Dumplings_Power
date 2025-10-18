@@ -23,27 +23,28 @@ struct ThreadParam {
 // Функция шифрования одного блока
 DWORD WINAPI encrypt_block(LPVOID param)
 {
-    // Получаем номер блока и его длину
+    // Приводим параметр к типу ThreadParam
     ThreadParam* tp = (ThreadParam*)param;
-    int block_num = tp->block_num;
-    int block_len = tp->block_len;
+    int block_num = tp->block_num; // Получаем номер блока
+    int block_len = tp->block_len; // Получаем длину блока
 
-    unsigned char* block = blocks[block_num];
-    unsigned char* result = encrypted[block_num];
+    // Получаем указатели на текущий блок и массив для результата
+    unsigned char* block = blocks[block_num];   // Исходный блок текста
+    unsigned char* result = encrypted[block_num]; // Зашифрованный блок
 
     // Шаг 1: Переворачиваем блок (первый->последний, второй->предпоследний и т.д.)
     for (int i = 0; i < block_len; i++)
     {
-        result[i] = block[block_len - 1 - i];
+        result[i] = block[block_len - 1 - i]; // Копируем символы в обратном порядке
     }
 
     // Шаг 2: Применяем XOR с ключом
     for (int i = 0; i < block_len; i++)
     {
-        result[i] = result[i] ^ key[i];
+        result[i] = result[i] ^ key[i]; // Побитовое XOR с соответствующим символом ключа
     }
 
-    return 0;
+    return 0; // Возвращаем 0 для указания успешного завершения потока
 }
 
 int main()
@@ -93,20 +94,20 @@ int main()
     // Разделяем текст на блоки
     for (int i = 0; i < num_blocks; i++)
     {
-        int start = i * k;
-        int length = min(k, n - start);
+        int start = i * k; // Начальная позиция текущего блока в массиве text
+        int length = min(k, n - start); // Длина текущего блока (не больше k или оставшегося текста)
 
-        blocks[i] = new unsigned char[length + 1];
-        encrypted[i] = new unsigned char[length + 1];
+        blocks[i] = new unsigned char[length + 1]; // Выделяем память для блока (+1 для '\0')
+        encrypted[i] = new unsigned char[length + 1]; // Выделяем память для зашифрованного блока
 
+        // Копируем символы из text в текущий блок
         for (int j = 0; j < length; j++)
         {
-            blocks[i][j] = text[start + j];
+            blocks[i][j] = text[start + j]; // Копируем символы из text в блок
         }
-        blocks[i][length] = '\0';
-        encrypted[i][length] = '\0';
-
-        block_numbers[i] = i;
+        blocks[i][length] = '\0'; // Добавляем завершающий нуль для блока
+        encrypted[i][length] = '\0'; // Добавляем завершающий нуль для зашифрованного блока
+        block_numbers[i] = i; // Сохраняем номер блока (индекс)
     }
 
     cout << "--- Исходные блоки ---" << endl;
@@ -164,19 +165,6 @@ int main()
         cout << encrypted[i];
     }
     cout << "\"" << endl;
-
-    // Вывод в шестнадцатеричном виде
-    cout << "Зашифрованный текст (hex): ";
-    for (int i = 0; i < num_blocks; i++)
-    {
-        int start = i * k;
-        int length = min(k, n - start);
-        for (int j = 0; j < length; j++)
-        {
-            printf("%02X ", encrypted[i][j]);
-        }
-    }
-    cout << endl;
 
     // Закрытие дескрипторов потоков
     for (int i = 0; i < num_blocks; i++)

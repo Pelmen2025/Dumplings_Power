@@ -13,7 +13,7 @@ struct Node {
 
 // Структура для передачи параметров в поток
 struct ThreadParam {
-    Node* node;
+    Node* node; // Указатель на узел, для которого вычисляется сумма поддерева
 };
 
 // Функция потока для вычисления суммы поддерева
@@ -31,10 +31,10 @@ DWORD WINAPI calculate_sum(LPVOID param)
     node->subtree_sum = node->data;
 
     // Дескрипторы для дочерних потоков
-    HANDLE hLeftThread = NULL;
-    HANDLE hRightThread = NULL;
-    DWORD dwLeftThreadID, dwRightThreadID;
-    ThreadParam leftParam, rightParam;
+    HANDLE hLeftThread = NULL; // Дескриптор потока для левого поддерева
+    HANDLE hRightThread = NULL; // Дескриптор потока для правого поддерева
+    DWORD dwLeftThreadID, dwRightThreadID; // Идентификаторы потоков
+    ThreadParam leftParam, rightParam; // Параметры для дочерних потоков
 
     // Если есть левый потомок, создаём поток для него
     if (node->left != NULL)
@@ -131,8 +131,10 @@ int main()
     root->left->right = createNode(7);
     root->right->left = createNode(12);
     root->right->right = createNode(20);
-    root->left->left->left = createNode(1);
+    root->left->left->left = createNode(2);
     root->right->right->right = createNode(25);
+    root->left->left->left->left = createNode(1);
+
 
     cout << "=== Бинарное дерево ===" << endl;
     cout << "(повернуто на 90 градусов против часовой стрелки)" << endl << endl;

@@ -167,19 +167,6 @@ int main()
     }
     cout << "\"" << endl;
 
-    // Вывод в шестнадцатеричном виде
-    cout << "Расшифрованный текст (hex): ";
-    for (int i = 0; i < num_blocks; i++)
-    {
-        int start = i * k;
-        int length = min(k, n - start);
-        for (int j = 0; j < length; j++)
-        {
-            printf("%02X ", decrypted[i][j]);
-        }
-    }
-    cout << endl;
-
     // Закрытие дескрипторов потоков
     for (int i = 0; i < num_blocks; i++)
     {
