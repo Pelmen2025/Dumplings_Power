@@ -1,4 +1,4 @@
-﻿using GeometryLibrary;
+﻿using G;
 
 class Program
 {
