@@ -1,4 +1,4 @@
-﻿namespace GeometryLibrary
+﻿namespace G
 {
     
     public class LineSegment
