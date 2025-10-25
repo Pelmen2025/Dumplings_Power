@@ -1,76 +1,79 @@
-﻿public class LineSegment
+﻿namespace GeometryLibrary
 {
-    private double _x1; 
-    private double _x2; 
-
-    public double Start
+    
+    public class LineSegment
     {
-        get => _x1;
-        set => _x1 = value;
-    }
+        private double _start;
+        private double _end;
 
-    public double End
-    {
-        get => _x2;
-        set => _x2 = value;
-    }
+       
+        public double Start
+        {
+            get => _start;
+            set => _start = value;
+        }
 
-    public LineSegment()
-    {
-        _x1 = 0;
-        _x2 = 0;
-    }
+        
+        public double End
+        {
+            get => _end;
+            set => _end = value;
+        }
 
-    public LineSegment(double x1, double x2)
-    {
-        _x1 = x1;
-        _x2 = x2;
-    }
+        
+        public LineSegment()
+        {
+            _start = 0.0;
+            _end = 0.0;
+        }
 
-    public double GetLength()
-    {
-        return Math.Abs(_x2 - _x1);
-    }
+        
+        public LineSegment(double start, double end)
+        {
+            this._start = start;
+            this._end = end;
+        }
 
-    public override string ToString()
-    {
-        return $"[{_x1}; {_x2}] (длина: {GetLength():F2})";
-    }
+        /// Вычисляет длину отрезка.
+        public double CalculateLength()
+        {
+            return Math.Abs(_end - _start);
+        }
 
+        /// Возвращает строковое представление отрезка.
+        public override string ToString()
+        {
+            return $"[{_start}; {_end}], длина: {CalculateLength():F2}";
+        }
 
-    public static LineSegment operator +(LineSegment seg)
-    {
-        return new LineSegment(seg._x1, seg._x2);
-    }
+        /// Неявное преобразование LineSegment в double.
+        public static implicit operator double(LineSegment segment)
+        {
+            if (segment == null)
+            {
+                throw new ArgumentNullException(nameof(segment));
+            }
+            return segment._end;
+        }
 
-    public static LineSegment operator -(LineSegment seg)
-    {
-        return new LineSegment(-seg._x1, -seg._x2);
-    }
+        /// Сдвигает отрезок на заданное число (правосторонняя операция).
+        public static LineSegment operator +(LineSegment segment, int d)
+        {
+            if (segment == null)
+            {
+                throw new ArgumentNullException(nameof(segment));
+            }
+            return new LineSegment(segment._start + d, segment._end + d);
+        }
 
-
-    public static implicit operator double(LineSegment seg)
-    {
-        return (seg._x1 + seg._x2) / 2.0;
-    }
-
-    public static LineSegment operator +(LineSegment seg, int d)
-    {
-        return new LineSegment(seg._x1 + d, seg._x2 + d);
-    }
-
-    public static LineSegment operator +(int d, LineSegment seg)
-    {
-        return seg + d;
-    }
-
-    public static LineSegment operator -(LineSegment seg, int d)
-    {
-        return seg + (-d);
-    }
-
-    public static LineSegment operator -(int d, LineSegment seg)
-    {
-        throw new NotSupportedException("Операция int - LineSegment не поддерживается.");
+        /// Сдвигает отрезок на заданное число (левосторонняя операция).
+        public static LineSegment operator +(int d, LineSegment segment)
+        {
+            if (segment == null)
+            {
+                throw new ArgumentNullException(nameof(segment));
+            }
+            return new LineSegment(segment._start + d, segment._end + d);
+        }
     }
 }

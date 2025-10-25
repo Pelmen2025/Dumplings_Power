@@ -1,49 +1,35 @@
-﻿class Program
+﻿using GeometryLibrary;
+
+class Program
 {
-    static void Main()
+    static void Main(string[] args)
     {
-        Console.OutputEncoding = System.Text.Encoding.UTF8;
-        Console.WriteLine("=== Тест класса LineSegment ===\n");
+        Console.WriteLine("=== Тестирование класса LineSegment ===\n");
 
-        // 1. Конструктор по умолчанию
-        var seg = new LineSegment();
-        Console.WriteLine($"По умолчанию: {seg}");
+        // Тест конструкторов
+        Console.WriteLine("1. Конструкторы:");
+        LineSegment s1 = new LineSegment();
+        LineSegment s2 = new LineSegment(2.5, 8);
+        Console.WriteLine($"   По умолчанию: {s1}");
+        Console.WriteLine($"   С параметрами: {s2}\n");
 
-        // 2. Конструктор с параметрами + длина
-        seg = new LineSegment(2, 7);
-        Console.WriteLine($"Отрезок: {seg}");
-        Console.WriteLine($"Длина: {seg.GetLength():F2}\n");
+        // Тест свойств и метода CalculateLength
+        Console.WriteLine("2. Свойства и длина:");
+        s1.Start = -4.0;
+        s1.End = 5.0;
+        Console.WriteLine($"   {s1}");
+        Console.WriteLine($"   Длина: {s1.CalculateLength()}\n");
 
-        // 3. Унарные операции
-        Console.WriteLine($"+seg = {+seg}");
-        Console.WriteLine($"-seg = {-seg}\n");
+        // Тест операций
+        Console.WriteLine("3. Операции:");
+        LineSegment s4 = new LineSegment(5.0, 11.5);
+        Console.WriteLine($"   Исходный: {s4}");
+        Console.WriteLine($"   s4 + 3: {s4 + 3}");
+        Console.WriteLine($"   5 + s4: {5 + s4}");
+        double end = s4;
+        Console.WriteLine($"   Преобразование в double: {end}");
 
-        // 4. Приведение к double (середина)
-        double mid = seg;
-        Console.WriteLine($"Середина отрезка: {mid:F2}\n");
-
-        // 5. Бинарные операции с int
-        Console.WriteLine($"seg + 3 = {seg + 3}");
-        Console.WriteLine($"5 + seg = {5 + seg}");
-        Console.WriteLine($"seg - 2 = {seg - 2}\n");
-
-        // 6. Ввод с клавиатуры
-        Console.Write("Введите начало (x1): ");
-        double x1 = double.Parse(Console.ReadLine() ?? "0");
-        Console.Write("Введите конец (x2): ");
-        double x2 = double.Parse(Console.ReadLine() ?? "0");
-
-        var userSeg = new LineSegment(x1, x2);
-        Console.WriteLine($"\nВаш отрезок: {userSeg}");
-        Console.WriteLine($"Середина: {(double)userSeg:F2}");
-        Console.WriteLine($"Сдвиг +1: {userSeg + 1}");
-
-        // 7. Изменение через свойства
-        userSeg.Start += 10;
-        userSeg.End -= 5;
-        Console.WriteLine($"После изменения: {userSeg}");
-
-        Console.WriteLine("\nГотово. Нажмите любую клавишу...");
+        Console.WriteLine("\n=== Тестирование завершено ===");
         Console.ReadKey();
     }
 }
