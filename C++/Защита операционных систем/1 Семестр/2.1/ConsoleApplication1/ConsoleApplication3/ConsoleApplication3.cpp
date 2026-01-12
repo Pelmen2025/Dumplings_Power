@@ -15,20 +15,22 @@ double f(double x)
     return sin(x) + 2.0;
 }
 
+// Каждый поток получает свой номер i и считает площадь только своего участка
 DWORD WINAPI potokChast(LPVOID param)
 {
-    int i = (int)(size_t)param;
+    int i = (int)(size_t)param;           // номер потока (0, 1, 2, ..., n-1)
 
-    double h_gl = (b - a) / n;
-    double x1 = a + i * h_gl;
-    double x2 = x1 + h_gl;
+    double h_gl = (b - a) / n;            // ширина крупного куска
+    double x1 = a + i * h_gl;             // левая граница этого куска
+    double x2 = x1 + h_gl;                // правая граница
 
-    double h_m = (x2 - x1) / m;
-    double lokalPloshad = 0;
+    double h_m = (x2 - x1) / m;           // ширина маленького прямоугольника
+    double lokalPloshad = 0;              // Площадь, посчитанная только этим потоком  
 
+    // считаем площадь внутри своего крупного куска методом средних прямоугольников
     for (int j = 0; j < m; j++)
     {
-        double x = x1 + j * h_m + h_m / 2.0;
+        double x = x1 + j * h_m + h_m / 2.0; // середина маленького интервала
         lokalPloshad += f(x) * h_m;
     }
 
@@ -42,7 +44,7 @@ DWORD WINAPI potokChast(LPVOID param)
 int main()
 {
     setlocale(LC_ALL, "");
-
+        
     cout << "Введите левую границу a: ";
     cin >> a;
     cout << "Введите правую границу b: ";
@@ -59,6 +61,7 @@ int main()
     }
 
     if (n > 64) n = 64;
+
 
     InitializeCriticalSection(&krit_sekciya);
 
@@ -81,10 +84,5 @@ int main()
     cout << "\nПриближённая площадь под кривой y = sin(x) + 2" << endl;
     cout << "На отрезке [" << a << ", " << b << "] = " << ploshadObshaya << endl;
 
-    double tochnoe = -cos(b) + cos(a) + 2 * (b - a);
-    cout << "Точное значение (для проверки) = " << tochnoe << endl;
-    cout << "Погрешность = " << fabs(ploshadObshaya - tochnoe) << endl;
-
-    system("pause");
     return 0;
 }

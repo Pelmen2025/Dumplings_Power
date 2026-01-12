@@ -71,6 +71,5 @@ int main()
     cout << "\nСумма кодов символов = " << summa << endl;
     cout << "Контрольная сумма (mod 256) = " << kontrol << endl;
 
-    system("pause");
     return 0;
 }

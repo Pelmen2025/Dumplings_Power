@@ -24,17 +24,19 @@ CRITICAL_SECTION cs_file;
 
 int n_potokov = 0;
 
+// Добавление элемента в начало дека
 void push_front_simple(const string& s)
 {
-    head = (head - 1 + MAX_ELEMS) % MAX_ELEMS;
+    head = (head - 1 + MAX_ELEMS) % MAX_ELEMS; // сдвигаем голову назад по кругу
     dek[head] = s;
     InterlockedIncrement(&countDek);
 }
 
+// Добавление элемента в конец дека
 void push_back_simple(const string& s)
 {
     dek[tail] = s;
-    tail = (tail + 1) % MAX_ELEMS;
+    tail = (tail + 1) % MAX_ELEMS; // сдвигаем хвост вперёд по кругу
     InterlockedIncrement(&countDek);
 }
 
@@ -43,8 +45,10 @@ DWORD WINAPI potok_dobavlyaet(LPVOID param)
     int id = (int)(size_t)param;
     while (true)
     {
+        // Заходим в критическую секцию — теперь только этот поток имеет право
+        // читать и изменять idxRead и elems[]
         EnterCriticalSection(&cs_file);
-        if (idxRead >= totalElems)
+        if (idxRead >= totalElems) // Проверяем, остались ли ещё задачи
         {
             LeaveCriticalSection(&cs_file);
             break;
@@ -53,9 +57,11 @@ DWORD WINAPI potok_dobavlyaet(LPVOID param)
         idxRead++;
         LeaveCriticalSection(&cs_file);
 
+        // Если дек уже заполнен — выходим
         if (InterlockedCompareExchange(&countDek, 0, 0) >= MAX_ELEMS)
             break;
 
+        // Случайно выбираем: в начало (0) или в конец (1)
         int where = rand() % 2;
 
         if (where == 0)
@@ -85,8 +91,6 @@ DWORD WINAPI potok_dobavlyaet(LPVOID param)
             }
             LeaveCriticalSection(&cs_tail);
         }
-
-        Sleep(10);
     }
 
     cout << "Поток " << id << " завершил работу.\n";

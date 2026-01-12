@@ -6,13 +6,12 @@
 using namespace std;
 
 CRITICAL_SECTION krit_sekciya;
-double matrica[20][20];
+double matrica[10][10];
 double summaObshaya = 0;
 int n = 0, m = 0;
 
-HANDLE potokiForm[20];
-HANDLE potokiSum[20];
-double summaStrok[20];
+HANDLE potokiForm[10];
+HANDLE potokiSum[10];
 
 DWORD WINAPI potokZapolnyaet(LPVOID param)
 {
@@ -22,7 +21,7 @@ DWORD WINAPI potokZapolnyaet(LPVOID param)
     {
         matrica[i][j] = (rand() % 100) / 10.0;
     }
-
+    
     ResumeThread(potokiSum[i]);
 
     return 0;
@@ -38,8 +37,6 @@ DWORD WINAPI potokSchitaet(LPVOID param)
         lokalSum += matrica[i][j];
     }
 
-    summaStrok[i] = lokalSum;
-
     EnterCriticalSection(&krit_sekciya);
     summaObshaya += lokalSum;
     LeaveCriticalSection(&krit_sekciya);
@@ -52,9 +49,9 @@ int main()
     setlocale(LC_ALL, "");
     srand((unsigned)time(NULL));
 
-    cout << "Введите количество строк (n <= 20): ";
+    cout << "Введите количество строк (n <= 10): ";
     cin >> n;
-    cout << "Введите количество столбцов (m <= 20): ";
+    cout << "Введите количество столбцов (m <= 10): ";
     cin >> m;
 
     if (n <= 0 || m <= 0)
@@ -63,8 +60,8 @@ int main()
         return 0;
     }
 
-    if (n > 20) n = 20;
-    if (m > 20) m = 20;
+    if (n > 10) n = 10;
+    if (m > 10) m = 10;
 
     InitializeCriticalSection(&krit_sekciya);
 
@@ -104,6 +101,5 @@ int main()
 
     cout << "\nОбщая сумма всех элементов = " << summaObshaya << endl;
 
-    system("pause");
     return 0;
 }
