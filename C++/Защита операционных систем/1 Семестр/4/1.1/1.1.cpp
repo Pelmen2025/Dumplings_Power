@@ -21,9 +21,14 @@ zapis* buffer;  // Общий буфер заявок
 int tek_pos = 0; // Текущая позиция (работаем как стек)
 
 // Итоговые массивы (суммирование материалов)
+<<<<<<< HEAD
 char itog_nazvaniya[100][20];  // Массив до 100 строк (названий материалов),
                                // каждое название — массив из 20 символов
 int itog_kol[100];   // Общее количество этого материала
+=======
+char itog_nazvaniya[100][20];
+int itog_kol[100];
+>>>>>>> origin/main
 int itog_kolvo = 0;  // Количество уникальных материалов
 
 // Объекты синхронизации
@@ -93,6 +98,7 @@ DWORD WINAPI obrabotchik(LPVOID)
 
         tek_pos--;  // Забираем последний элемент (LIFO)
 
+<<<<<<< HEAD
         // Указатель на название материала в текущем элементе буфера
         char* mat = buffer[tek_pos].material;
 
@@ -100,6 +106,12 @@ DWORD WINAPI obrabotchik(LPVOID)
         int kol = buffer[tek_pos].kolichestvo;
 
         bool est = false; // Флаг, показывающий, найден ли уже этот материал в итоговом массиве
+=======
+        char* mat = buffer[tek_pos].material;
+        int kol = buffer[tek_pos].kolichestvo;
+
+        bool est = false;
+>>>>>>> origin/main
 
         // Проверяем, есть ли уже такой материал в итоговом списке
         for (int i = 0; i < itog_kolvo; i++)
@@ -113,17 +125,26 @@ DWORD WINAPI obrabotchik(LPVOID)
         }
 
         // Если материала нет — добавляем новый
+<<<<<<< HEAD
         if (!est)  // Если материал не найден в итоговом массиве (новый)
         {
             // Копируем название нового материала в массив итоговых названий
+=======
+        if (!est)
+        {
+>>>>>>> origin/main
             strcpy_s(itog_nazvaniya[itog_kolvo],
                 sizeof(itog_nazvaniya[itog_kolvo]),
                 mat);
 
+<<<<<<< HEAD
             // Сохраняем количество для этого нового материала
             itog_kol[itog_kolvo] = kol;
 
             // Увеличиваем счётчик уникальных материалов
+=======
+            itog_kol[itog_kolvo] = kol;
+>>>>>>> origin/main
             itog_kolvo++;
         }
 
@@ -154,18 +175,26 @@ int main()
     cin >> k;
 
     buf_size = n * k;              // Общий размер буфера
+<<<<<<< HEAD
     buffer = new zapis[buf_size];  // Выделяем память под буфер заявок размером buf_size
+=======
+    buffer = new zapis[buf_size];  // Выделение памяти
+>>>>>>> origin/main
 
     HANDLE* hCeh = new HANDLE[n];  // Массив потоков-цехов
     HANDLE hObr;                   // Поток-обработчик
 
     // Создание семафоров
+<<<<<<< HEAD
     hSemPustye = CreateSemaphore(
         NULL,      // lpSemaphoreAttributes: атрибуты безопасности (NULL — стандартные)
         buf_size,  // lInitialCount: начальное значение семафора (сколько свободных ячеек сразу)
         buf_size,  // lMaximumCount: максимальное значение семафора (не более buf_size)
         NULL       // lpName: имя семафора (NULL — неименованный семафор)
     );
+=======
+    hSemPustye = CreateSemaphore(NULL, buf_size, buf_size, NULL);
+>>>>>>> origin/main
     // Изначально все ячейки пустые
 
     hSemZanyatye = CreateSemaphore(NULL, 0, buf_size, NULL);
@@ -177,10 +206,17 @@ int main()
     // Запуск потоков-цехов
     for (int i = 0; i < n; i++)
     {
+<<<<<<< HEAD
         int* p = new int;         // выделяем память для хранения номера цеха
         *p = i + 1;               // присваиваем номер цеха (1, 2, 3, ...)
 
         hCeh[i] = CreateThread(NULL, 0, ceh, p, 0, NULL);   // Создаём поток
+=======
+        int* p = new int;
+        *p = i + 1;
+
+        hCeh[i] = CreateThread(NULL, 0, ceh, p, 0, NULL);
+>>>>>>> origin/main
     }
 
     // Запуск обработчика
