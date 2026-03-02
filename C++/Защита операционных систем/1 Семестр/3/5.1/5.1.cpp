@@ -148,9 +148,9 @@ int main()
     // Создание потоков
     for (int i = 0; i < n; i++)
     {
-        paramy[i].monitor = &monitor;
-        paramy[i].osnovanie = osnovanie;
-        paramy[i].id = i;
+        paramy[i].monitor = &monitor;       // даём потоку адрес объекта синхронизации (общий для всех)
+        paramy[i].osnovanie = osnovanie;    // передаём размер хеш-таблицы (чтобы знать, на что делать %)
+        paramy[i].id = i;                   // уникальный номер потока (0–4), нужен для разной рандомизации
 
         potoki[i] = CreateThread(
             NULL,
