@@ -11,7 +11,7 @@ HANDLE hEventChitanieGotovo;
 HANDLE hEventShifrovanieGotovo;
 HANDLE hMutexDostupKBufferu;
 
-const int buf_size = 20;
+const int buf_size = 3;
 char buffer[buf_size];
 char key[100];
 int k = 0;

@@ -141,9 +141,9 @@ int main()
     // Создаём монитор
     CMonitor monitor(kol_strok);
 
-    int n = 5;                   // количество потоков
-    HANDLE potoki[5];            // массив дескрипторов потоков
-    PotokParam paramy[5];        // параметры потоков
+    int n = 2;                   // количество потоков
+    HANDLE potoki[2];            // массив дескрипторов потоков
+    PotokParam paramy[2];        // параметры потоков
 
     // Создание потоков
     for (int i = 0; i < n; i++)
