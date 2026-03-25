@@ -1,261 +1,236 @@
-﻿#include <windows.h>   // WinAPI: потоки, семафоры, мьютексы
-#include <iostream>
-#include <cstdio>
-#include <cstring>
+﻿#include <windows.h>  // Библиотека для работы с потоками (Threads), мьютексами и семафорами Windows API
+#include <iostream>   // Ввод-вывод в консоль
+#include <cstdio>     // Работа с файлами (fopen, fgetc, fputc)
+#include <cctype>     // Работа с символами (проверки регистра)
+#include <cstring>    // Работа со строками и памятью (memset)
 
 using namespace std;
 
-// Размер кольцевого буфера
-const int M = 50;
+// === НАСТРОЙКИ ПРОГРАММЫ ===
+const int RAZMER_BUFERA = 50;        // Размер кольцевого буфера в памяти
+const int KOLVO_DESHIFROVSHIKOV = 4; // Количество потоков, которые будут параллельно расшифровывать текст
 
-// Количество потоков-обработчиков (worker)
-const int N = 4;
+// === ОБЩИЕ ДАННЫЕ (РАЗДЕЛЯЕМАЯ ПАМЯТЬ) ===
+char bufer[RAZMER_BUFERA]; // Сам кольцевой буфер для хранения символов
+int zapisano = 0;          // Сколько "сырых" (прочитанных, но еще не расшифрованных) символов сейчас в буфере
+int gotovo = 0;            // Сколько "готовых" (уже расшифрованных) символов ожидают записи в файл
+int pos_zapis = 0;         // Индекс в массиве, куда Читатель запишет следующий символ
+int pos_chten = 0;         // Индекс в массиве, откуда Писатель заберет следующий символ
 
-// Кольцевой буфер
-char bufer[M];
+// === ОБЪЕКТЫ СИНХРОНИЗАЦИИ ===
+HANDLE semPustye; // Семафор: считает количество ПУСТЫХ мест в буфере (куда можно писать)
+HANDLE semSyrye;  // Семафор: считает количество СЫРЫХ (необработанных) символов для дешифровщиков
+HANDLE semGotovye;// Семафор: считает количество ГОТОВЫХ символов для писателя
+HANDLE mutex;     // Мьютекс: "дверной замок". Гарантирует, что только один поток одновременно меняет переменные выше
 
-// Индекс записи (reader пишет сюда)
-int in = 0;
+// Файловые указатели
+FILE* failIn = NULL;  // Откуда читаем зашифрованный текст
+FILE* failOut = NULL; // Куда пишем расшифрованный текст
 
-// Индекс чтения для writer (финальная запись в файл)
-int writer_out = 0;
 
-// Индекс чтения для worker (дешифрование)
-int out = 0;
-
-// Количество символов в буфере, ожидающих обработки
-int buf_count = 0;
-
-// Количество уже обработанных (дешифрованных),
-// но ещё не записанных в файл символов
-int de_count = 0;
-
-// Флаг завершения чтения файла
-bool done_reading = false;
-
-// Семафоры и мьютекс
-HANDLE semEmpty; // количество свободных ячеек в буфере
-HANDLE semFull;  // количество считанных, но ещё не обработанных символов
-HANDLE semDone;  // количество обработанных символов
-HANDLE mutex;    // защита общих переменных и буфера
-
-FILE* fin;   // входной файл
-FILE* fout;  // выходной файл
-
-// ---------------- ПОТОК ЧТЕНИЯ (producer) ----------------
-DWORD WINAPI reader(LPVOID)
+// =========================================================
+// ПОТОК 1: ЧИТАТЕЛЬ (читает из файла и кладет в буфер)
+// =========================================================
+DWORD WINAPI PotokChitatel(LPVOID)
 {
-    int c;
-
-    // Читаем символы из файла до EOF
-    while ((c = fgetc(fin)) != EOF)
+    char c;
+    // Читаем файл по одному символу, пока не достигнем конца (EOF)
+    while ((c = fgetc(failIn)) != EOF)
     {
-        // Ждём, пока есть свободное место в буфере
-        WaitForSingleObject(semEmpty, INFINITE);
+        // 1. Ждем, пока в буфере не появится хотя бы 1 пустое место
+        WaitForSingleObject(semPustye, INFINITE);
 
-        // Захватываем мьютекс для работы с общими данными
+        // 2. Блокируем мьютекс, чтобы другие потоки не мешали работать с массивом и счетчиками
         WaitForSingleObject(mutex, INFINITE);
 
-        // Записываем символ в буфер
-        bufer[in] = (char)c;
+        bufer[pos_zapis] = c;                        // Записываем символ в буфер
+        pos_zapis = (pos_zapis + 1) % RAZMER_BUFERA; // Сдвигаем индекс по кругу (кольцевой буфер)
+        zapisano++;                                  // Увеличиваем счетчик "сырых" символов
 
-        // Сдвигаем индекс записи по кольцу
-        in = (in + 1) % M;
-
-        // Увеличиваем количество необработанных символов
-        buf_count++;
-
-        // Освобождаем мьютекс
+        // 3. Открываем мьютекс (разрешаем другим потокам доступ к данным)
         ReleaseMutex(mutex);
 
-        // Увеличиваем счётчик semFull (появился новый символ для обработки)
-        ReleaseSemaphore(semFull, 1, NULL);
+        // 4. Сообщаем дешифровщикам: "Эй, появился +1 сырой символ, налетайте!"
+        ReleaseSemaphore(semSyrye, 1, NULL);
     }
 
-    // После окончания чтения
-    WaitForSingleObject(mutex, INFINITE);
-    done_reading = true;  // сигнал всем, что больше данных не будет
-    ReleaseMutex(mutex);
-
-    // Разблокируем worker-потоки (если они ждут semFull)
-    ReleaseSemaphore(semFull, N, NULL);
-
+    // Когда файл полностью прочитан:
+    // Будим ВСЕ спящие потоки-дешифровщики фиктивными сигналами, 
+    // чтобы они не зависли в бесконечном ожидании и смогли завершить работу
+    for (int i = 0; i < KOLVO_DESHIFROVSHIKOV; i++)
+    {
+        ReleaseSemaphore(semSyrye, 1, NULL);
+    }
     cout << "Чтение из файла завершено\n";
     return 0;
 }
 
-// ---------------- ПОТОК-ОБРАБОТЧИК (worker) ----------------
-DWORD WINAPI worker(LPVOID)
+
+// =========================================================
+// ПОТОКИ 2-5: ДЕШИФРОВЩИКИ (обрабатывают символы)
+// =========================================================
+DWORD WINAPI PotokDeshifrovshik(LPVOID)
 {
     while (true)
     {
-        // Ждём появления символа для обработки
-        // Таймаут 3 секунды — защита от вечного ожидания
-        if (WaitForSingleObject(semFull, 3000) == WAIT_TIMEOUT)
+        // 1. Ждем появления "сырых" символов. 
+        // Если символов нет 5 секунд (5000 мс), значит файл закончился и пора выходить (break).
+        if (WaitForSingleObject(semSyrye, 5000) == WAIT_TIMEOUT)
         {
             break;
         }
 
+        // 2. Блокируем доступ к данным
         WaitForSingleObject(mutex, INFINITE);
 
-        // Если в буфере нет данных
-        if (buf_count == 0)
+        // Дополнительная проверка: если мы проснулись, но сырых данных нет, значит
+        // нас разбудил Читатель перед выходом (чтобы мы завершили работу).
+        if (zapisano == 0)
         {
-            // И чтение уже завершено — выходим
-            if (done_reading)
-            {
-                ReleaseMutex(mutex);
-                break;
-            }
-
-            ReleaseMutex(mutex);
-            continue;
+            ReleaseMutex(mutex); // Не забываем открыть мьютекс перед выходом!
+            break;
         }
 
-        // Берём символ для дешифрования
-        char ch = bufer[out];
+        // ХИТРЫЙ МОМЕНТ: Вычисляем индекс символа для расшифровки.
+        // Мы берем индекс, откуда начнет читать Писатель (pos_chten), 
+        // и прибавляем количество УЖЕ готовых символов (gotovo).
+        // Таким образом мы перепрыгиваем уже обработанные символы и берем первый необработанный.
+        int idx = (pos_chten + gotovo) % RAZMER_BUFERA;
+        char c = bufer[idx];
 
-        // Дешифрование:
-        // Сдвиг буквы на -1 (циклически)
-        if (ch >= 'A' && ch <= 'Z')
+        // --- ЛОГИКА ДЕШИФРОВАНИЯ (сдвиг алфавита на 1 символ назад) ---
+        if (c >= 'A' && c <= 'Z')
         {
-            ch = (ch == 'A') ? 'Z' : ch - 1;
+            c = (c == 'A') ? 'Z' : c - 1; // Если 'A', то зацикливаем на 'Z', иначе шаг назад
         }
-        else if (ch >= 'a' && ch <= 'z')
+        else if (c >= 'a' && c <= 'z')
         {
-            ch = (ch == 'a') ? 'z' : ch - 1;
+            c = (c == 'a') ? 'z' : c - 1; // То же самое для маленьких букв
         }
 
-        // Записываем дешифрованный символ обратно в буфер
-        bufer[out] = ch;
+        bufer[idx] = c; // Возвращаем расшифрованный символ на его же место в буфере
 
-        // Сдвигаем индекс чтения
-        out = (out + 1) % M;
+        gotovo++;   // Увеличиваем счетчик ГОТОВЫХ символов
+        zapisano--; // Уменьшаем счетчик СЫРЫХ символов
 
-        // Уменьшаем количество необработанных
-        buf_count--;
-
-        // Увеличиваем количество обработанных
-        de_count++;
-
+        // 3. Открываем мьютекс
         ReleaseMutex(mutex);
 
-        // Сообщаем writer-потоку,
-        // что появился готовый символ
-        ReleaseSemaphore(semDone, 1, NULL);
+        // 4. Сигнализируем Писателю: "Эй, появилась +1 расшифрованная буква, можешь забирать!"
+        ReleaseSemaphore(semGotovye, 1, NULL);
     }
-
     return 0;
 }
 
-// ---------------- ПОТОК ЗАПИСИ (consumer) ----------------
-DWORD WINAPI writer(LPVOID)
+
+// =========================================================
+// ПОТОК 6: ПИСАТЕЛЬ (пишет готовые символы в файл)
+// =========================================================
+DWORD WINAPI PotokPisatel(LPVOID)
 {
     while (true)
     {
-        // Ждём появления обработанного символа
-        if (WaitForSingleObject(semDone, 3000) == WAIT_TIMEOUT)
+        // 1. Ждем появления "готовых" символов (до 5 секунд).
+        // Если вышло время (WAIT_TIMEOUT) И при этом готовых букв нет (gotovo == 0), 
+        // значит процесс полностью завершен.
+        if (WaitForSingleObject(semGotovye, 5000) == WAIT_TIMEOUT && gotovo == 0)
         {
-            WaitForSingleObject(mutex, INFINITE);
-
-            // Проверка: нет обработанных символов
-            // и чтение завершено
-            bool finished = (de_count == 0 && done_reading);
-
-            ReleaseMutex(mutex);
-
-            if (finished) break;
-
-            continue;
+            break; // Выход из бесконечного цикла
         }
 
+        // 2. Блокируем данные
         WaitForSingleObject(mutex, INFINITE);
 
-        // Берём готовый символ
-        char ch = bufer[writer_out];
+        // Защита от случайных/ложных пробуждений. Если семафор пустил, а данных реально нет:
+        if (gotovo == 0)
+        {
+            ReleaseMutex(mutex);
+            continue; // Возвращаемся в начало цикла ждать дальше
+        }
 
-        // Сдвигаем индекс записи в файл
-        writer_out = (writer_out + 1) % M;
+        // Забираем букву из буфера
+        char c = bufer[pos_chten];
+        pos_chten = (pos_chten + 1) % RAZMER_BUFERA; // Сдвигаем индекс чтения по кругу
+        gotovo--; // Уменьшаем количество готовых букв (мы её забрали)
 
-        // Уменьшаем число обработанных символов
-        de_count--;
-
+        // 3. Открываем мьютекс
         ReleaseMutex(mutex);
 
-        // Записываем в выходной файл
-        fputc(ch, fout);
+        // Пишем символ в файл (это делаем ВНЕ мьютекса, чтобы не тормозить другие потоки долгими операциями с диском)
+        fputc(c, failOut);
 
-        // Освобождаем одну ячейку буфера
-        ReleaseSemaphore(semEmpty, 1, NULL);
+        // 4. Сигнализируем Читателю: "Мы забрали 1 букву, освободилось +1 ПУСТОЕ место в буфере"
+        ReleaseSemaphore(semPustye, 1, NULL);
     }
-
     cout << "Запись в файл завершена\n";
     return 0;
 }
 
-// ---------------- ГЛАВНАЯ ФУНКЦИЯ ----------------
+
+// =========================================================
+// ГЛАВНАЯ ФУНКЦИЯ
+// =========================================================
 int main()
 {
+    // Включаем поддержку русского языка в консоли
     setlocale(LC_ALL, "Russian");
 
-    cout << "Задание 3 - Дешифрование текста\n\n";
-
-    // Обнуляем буфер
+    // Заполняем массив буфера нулями (очищаем память)
     memset(bufer, 0, sizeof(bufer));
+    cout << "Дешифрование текста (семафоры)\n\n";
 
-    // Открываем входной файл
-    if (fopen_s(&fin, "output.txt", "r") || !fin)
+    // Открываем файлы (fopen_s безопаснее старого fopen)
+    errno_t e1 = fopen_s(&failIn, "output.txt", "r");
+    errno_t e2 = fopen_s(&failOut, "decrypted.txt", "w");
+
+    // Проверка, что файлы успешно открыты
+    if (e1 || !failIn || e2 || !failOut)
     {
-        cout << "Нет файла output.txt\n";
-        system("pause");
+        cout << "Ошибка с файлами!\n";
         return 1;
     }
 
-    // Создаём выходной файл
-    if (fopen_s(&fout, "decrypted.txt", "w") || !fout)
-    {
-        cout << "Не могу создать decrypted.txt\n";
-        fclose(fin);
-        system("pause");
-        return 1;
-    }
+    // Инициализация объектов синхронизации:
+    // CreateSemaphore(Атрибуты безопасности, Начальное значение, Максимальное значение, Имя)
 
-    // Инициализация семафоров
-    semEmpty = CreateSemaphore(NULL, M, M, NULL); // изначально M свободных мест
-    semFull = CreateSemaphore(NULL, 0, M, NULL); // изначально нет данных
-    semDone = CreateSemaphore(NULL, 0, M, NULL); // изначально нет обработанных
-
-    // Мьютекс для защиты критических секций
+    // В начале буфер полностью пуст, поэтому доступно 50 пустых мест
+    semPustye = CreateSemaphore(NULL, RAZMER_BUFERA, RAZMER_BUFERA, NULL);
+    // В начале сырых символов нет
+    semSyrye = CreateSemaphore(NULL, 0, RAZMER_BUFERA, NULL);
+    // В начале готовых символов тоже нет
+    semGotovye = CreateSemaphore(NULL, 0, RAZMER_BUFERA, NULL);
+    // Мьютекс: изначально никем не заблокирован (FALSE)
     mutex = CreateMutex(NULL, FALSE, NULL);
 
-    // Массив дескрипторов потоков:
-    // 1 reader + 4 worker + 1 writer = 6
+    // Массив для хранения идентификаторов (handle) потоков (1 читатель + 4 дешифровщика + 1 писатель = 6)
     HANDLE h[6];
 
-    h[0] = CreateThread(NULL, 0, reader, NULL, 0, NULL);
+    // Запускаем поток Читателя
+    h[0] = CreateThread(NULL, 0, PotokChitatel, NULL, 0, NULL);
 
-    for (int i = 1; i <= N; i++)
+    // Запускаем в цикле 4 потока-Дешифровщика
+    for (int i = 1; i <= KOLVO_DESHIFROVSHIKOV; i++)
     {
-        h[i] = CreateThread(NULL, 0, worker, NULL, 0, NULL);
+        h[i] = CreateThread(NULL, 0, PotokDeshifrovshik, NULL, 0, NULL);
     }
 
-    h[5] = CreateThread(NULL, 0, writer, NULL, 0, NULL);
+    // Запускаем поток Писателя
+    h[5] = CreateThread(NULL, 0, PotokPisatel, NULL, 0, NULL);
 
-    // Ждём завершения всех потоков
+    // Главный поток (main) засыпает и ждет, пока ВСЕ 6 потоков не завершат свою работу
+    // TRUE - ждать все потоки; INFINITE - ждать бесконечно долго
     WaitForMultipleObjects(6, h, TRUE, INFINITE);
 
-    // Закрываем дескрипторы потоков
-    for (int i = 0; i < 6; i++)
-        CloseHandle(h[i]);
+    // ПОСЛЕДОВАТЕЛЬНОЕ ЗАКРЫТИЕ ВСЕХ РЕСУРСОВ ВО ИЗБЕЖАНИЕ УТЕЧЕК ПАМЯТИ:
+    for (int i = 0; i < 6; i++) CloseHandle(h[i]); // Закрываем дескрипторы потоков
+    CloseHandle(semPustye);                        // Закрываем семафоры
+    CloseHandle(semSyrye);
+    CloseHandle(semGotovye);
+    CloseHandle(mutex);                            // Закрываем мьютекс
 
-    // Освобождаем объекты синхронизации
-    CloseHandle(semEmpty);
-    CloseHandle(semFull);
-    CloseHandle(semDone);
-    CloseHandle(mutex);
+    // Закрываем файлы
+    fclose(failIn);
+    fclose(failOut);
 
-    fclose(fin);
-    fclose(fout);
-
-    return 0;
+    return 0; // Программа успешно завершена
 }

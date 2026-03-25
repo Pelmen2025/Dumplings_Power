@@ -1,107 +1,106 @@
 ﻿#include <windows.h>
 #include <iostream>
 #include <cstdio>
+#include <cctype>
 #include <cstring>
 
 using namespace std;
 
-const int M = 50;
-const int N = 4;
+const int RAZMER_BUFERA = 50;
+const int KOLVO_DESHIFROVSHIKOV = 4;
 
-char bufer[M];
-int in = 0;
-int writer_out = 0;
-int out = 0;
-int buf_count = 0;
-int de_count = 0;
-bool done_reading = false;
+char bufer[RAZMER_BUFERA];
+int zapisano = 0;
+int gotovo = 0;
+int pos_zapis = 0;
+int pos_chten = 0;
 
-HANDLE semEmpty;
-HANDLE semFull;
-HANDLE semDone;
+HANDLE semPustye;
+HANDLE semSyrye;
+HANDLE semGotovye;
 HANDLE mutex;
 
-FILE* fin;
-FILE* fout;
+FILE* failIn = NULL;
+FILE* failOut = NULL;
 
-DWORD WINAPI reader(LPVOID)
+DWORD WINAPI PotokChitatel(LPVOID)
 {
-    int c;
-    while ((c = fgetc(fin)) != EOF)
+    char c;
+    while ((c = fgetc(failIn)) != EOF)
     {
-        WaitForSingleObject(semEmpty, INFINITE);
+        WaitForSingleObject(semPustye, INFINITE);
         WaitForSingleObject(mutex, INFINITE);
-        bufer[in] = (char)c;
-        in = (in + 1) % M;
-        buf_count++;
+        bufer[pos_zapis] = c;
+        pos_zapis = (pos_zapis + 1) % RAZMER_BUFERA;
+        zapisano++;
         ReleaseMutex(mutex);
-        ReleaseSemaphore(semFull, 1, NULL);
+        ReleaseSemaphore(semSyrye, 1, NULL);
     }
-    WaitForSingleObject(mutex, INFINITE);
-    done_reading = true;
-    ReleaseMutex(mutex);
-    ReleaseSemaphore(semFull, N, NULL);
+    for (int i = 0; i < KOLVO_DESHIFROVSHIKOV; i++)
+    {
+        ReleaseSemaphore(semSyrye, 1, NULL);
+    }
     cout << "Чтение из файла завершено\n";
     return 0;
 }
 
-DWORD WINAPI worker(LPVOID)
+DWORD WINAPI PotokDeshifrovshik(LPVOID)
 {
     while (true)
     {
-        if (WaitForSingleObject(semFull, 3000) == WAIT_TIMEOUT)
+        if (WaitForSingleObject(semSyrye, 5000) == WAIT_TIMEOUT)
         {
             break;
         }
+
         WaitForSingleObject(mutex, INFINITE);
-        if (buf_count == 0)
+        if (zapisano == 0)
         {
-            if (done_reading)
-            {
-                ReleaseMutex(mutex);
-                break;
-            }
             ReleaseMutex(mutex);
-            continue;
+            break;
         }
-        char ch = bufer[out];
-        if (ch >= 'A' && ch <= 'Z')
+        int idx = (pos_chten + gotovo) % RAZMER_BUFERA;
+        char c = bufer[idx];
+
+        // Логика дешифрования
+        if (c >= 'A' && c <= 'Z')
         {
-            ch = (ch == 'A') ? 'Z' : ch - 1;
+            c = (c == 'A') ? 'Z' : c - 1;
         }
-        else if (ch >= 'a' && ch <= 'z')
+        else if (c >= 'a' && c <= 'z')
         {
-            ch = (ch == 'a') ? 'z' : ch - 1;
+            c = (c == 'a') ? 'z' : c - 1;
         }
-        bufer[out] = ch;
-        out = (out + 1) % M;
-        buf_count--;
-        de_count++;
+
+        bufer[idx] = c;
+        gotovo++;
+        zapisano--;
         ReleaseMutex(mutex);
-        ReleaseSemaphore(semDone, 1, NULL);
+        ReleaseSemaphore(semGotovye, 1, NULL);
     }
     return 0;
 }
 
-DWORD WINAPI writer(LPVOID)
+DWORD WINAPI PotokPisatel(LPVOID)
 {
     while (true)
     {
-        if (WaitForSingleObject(semDone, 3000) == WAIT_TIMEOUT)
+        if (WaitForSingleObject(semGotovye, 5000) == WAIT_TIMEOUT && gotovo == 0)
         {
-            WaitForSingleObject(mutex, INFINITE);
-            bool finished = (de_count == 0 && done_reading);
-            ReleaseMutex(mutex);
-            if (finished) break;
-            continue;
+            break;
         }
         WaitForSingleObject(mutex, INFINITE);
-        char ch = bufer[writer_out];
-        writer_out = (writer_out + 1) % M;
-        de_count--;
+        if (gotovo == 0)
+        {
+            ReleaseMutex(mutex);
+            continue;
+        }
+        char c = bufer[pos_chten];
+        pos_chten = (pos_chten + 1) % RAZMER_BUFERA;
+        gotovo--;
         ReleaseMutex(mutex);
-        fputc(ch, fout);
-        ReleaseSemaphore(semEmpty, 1, NULL);
+        fputc(c, failOut);
+        ReleaseSemaphore(semPustye, 1, NULL);
     }
     cout << "Запись в файл завершена\n";
     return 0;
@@ -110,39 +109,40 @@ DWORD WINAPI writer(LPVOID)
 int main()
 {
     setlocale(LC_ALL, "Russian");
-    cout << "Задание 3 - Дешифрование текста\n\n";
     memset(bufer, 0, sizeof(bufer));
-    if (fopen_s(&fin, "output.txt", "r") || !fin)
+    cout << "Дешифрование текста (семафоры)\n\n";
+
+    errno_t e1 = fopen_s(&failIn, "output.txt", "r");
+    errno_t e2 = fopen_s(&failOut, "decrypted.txt", "w");
+    if (e1 || !failIn || e2 || !failOut)
     {
-        cout << "Нет файла output.txt\n";
-        system("pause");
+        cout << "Ошибка с файлами!\n";
         return 1;
     }
-    if (fopen_s(&fout, "decrypted.txt", "w") || !fout)
-    {
-        cout << "Не могу создать decrypted.txt\n";
-        fclose(fin);
-        system("pause");
-        return 1;
-    }
-    semEmpty = CreateSemaphore(NULL, M, M, NULL);
-    semFull = CreateSemaphore(NULL, 0, M, NULL);
-    semDone = CreateSemaphore(NULL, 0, M, NULL);
+
+    semPustye = CreateSemaphore(NULL, RAZMER_BUFERA, RAZMER_BUFERA, NULL);
+    semSyrye = CreateSemaphore(NULL, 0, RAZMER_BUFERA, NULL);
+    semGotovye = CreateSemaphore(NULL, 0, RAZMER_BUFERA, NULL);
     mutex = CreateMutex(NULL, FALSE, NULL);
+
     HANDLE h[6];
-    h[0] = CreateThread(NULL, 0, reader, NULL, 0, NULL);
-    for (int i = 1; i <= N; i++)
+    h[0] = CreateThread(NULL, 0, PotokChitatel, NULL, 0, NULL);
+    for (int i = 1; i <= KOLVO_DESHIFROVSHIKOV; i++)
     {
-        h[i] = CreateThread(NULL, 0, worker, NULL, 0, NULL);
+        h[i] = CreateThread(NULL, 0, PotokDeshifrovshik, NULL, 0, NULL);
     }
-    h[5] = CreateThread(NULL, 0, writer, NULL, 0, NULL);
+    h[5] = CreateThread(NULL, 0, PotokPisatel, NULL, 0, NULL);
+
     WaitForMultipleObjects(6, h, TRUE, INFINITE);
+
     for (int i = 0; i < 6; i++) CloseHandle(h[i]);
-    CloseHandle(semEmpty);
-    CloseHandle(semFull);
-    CloseHandle(semDone);
+    CloseHandle(semPustye);
+    CloseHandle(semSyrye);
+    CloseHandle(semGotovye);
     CloseHandle(mutex);
-    fclose(fin);
-    fclose(fout);
+
+    fclose(failIn);
+    fclose(failOut);
+
     return 0;
 }

@@ -1,56 +1,54 @@
-﻿#include <windows.h>   // WinAPI: потоки, мьютексы, семафоры
-#include <iostream>
-#include <cstdio>
-#include <cstring>
+﻿#include <windows.h>   // Потоки, семафоры, мьютексы (WinAPI)
+#include <iostream>    // cout
+#include <cstdio>      // fopen_s, fgets, fputc
+#include <cstring>     // strlen, memcpy, memmove
 
 using namespace std;
 
 // Размер общего буфера (пула)
 const int n = 1024;
 
-// Количество потоков-производителей
+// Количество потоков-производителей (печати)
 const int m = 3;
 
-// Общий буфер (пул)
+// Общий буфер (пул), куда потоки пишут символы
 char pul[n];
 
-// Сколько свободного места в буфере
+// Сколько свободных байт в буфере
 int svobodno = n;
 
-// Сколько символов занято (заполнено)
-int zapolnеnо = 0;
+// Сколько байт занято (заполнено)
+int zapolneno = 0;
 
-// Семафор свободных ячеек
+// Семафор свободных мест
 HANDLE semSvobodnye;
 
-// Семафор заполненных ячеек
+// Семафор заполненных мест
 HANDLE semZapolnennye;
 
 // Мьютекс для защиты доступа к буферу
 HANDLE mutexPul;
 
-// Указатель на выходной файл
+// Выходной файл (куда записывает поток управления)
 FILE* vyhodnoj_fail;
 
-
-// ==========================
+// -------------------------
 // Поток-производитель
-// Читает файл inputX.txt и кладет данные в буфер
-// ==========================
+// -------------------------
 DWORD WINAPI potok_pechati(LPVOID param)
 {
-    // Получаем номер потока
+    // Получаем номер потока (1, 2, 3...)
     intptr_t nomer_ptr = (intptr_t)param;
     int nomer = (int)nomer_ptr;
 
-    // Формируем имя файла: input1.txt, input2.txt ...
+    // Формируем имя входного файла: input1.txt, input2.txt...
     char imya_faila[20];
     sprintf_s(imya_faila, sizeof(imya_faila), "input%d.txt", nomer);
 
     FILE* vhod_fail = NULL;
-    errno_t err = fopen_s(&vhod_fail, imya_faila, "r");
 
-    // Проверка открытия файла
+    // Открываем входной файл
+    errno_t err = fopen_s(&vhod_fail, imya_faila, "r");
     if (err != 0 || !vhod_fail)
     {
         cout << "Не могу открыть " << imya_faila << endl;
@@ -62,29 +60,23 @@ DWORD WINAPI potok_pechati(LPVOID param)
     // Читаем файл построчно
     while (fgets(stroka, sizeof(stroka), vhod_fail))
     {
-        char* ptr = stroka;               // указатель на текущую позицию в строке
+        char* ptr = stroka;               // указатель на текущую позицию строки
         int dlina = (int)strlen(stroka);  // длина строки
 
-        // Захватываем мьютекс (входим в критическую секцию)
+        // Захватываем мьютекс перед работой с буфером
         WaitForSingleObject(mutexPul, INFINITE);
 
-        // Пока вся строка не записана в буфер
         while (dlina > 0)
         {
-            // Если нет свободного места
+            // Если нет свободного места — ждём
             while (svobodno < 1)
             {
-                // Освобождаем мьютекс
-                ReleaseMutex(mutexPul);
-
-                // Ждём, пока появится свободное место
-                WaitForSingleObject(semSvobodnye, INFINITE);
-
-                // Снова захватываем мьютекс
-                WaitForSingleObject(mutexPul, INFINITE);
+                ReleaseMutex(mutexPul); // освобождаем мьютекс
+                WaitForSingleObject(semSvobodnye, INFINITE); // ждём свободное место
+                WaitForSingleObject(mutexPul, INFINITE); // снова захватываем мьютекс
             }
 
-            // Сколько можем записать за раз
+            // Сколько реально можем записать
             int mogu_zapisat = (dlina < svobodno) ? dlina : svobodno;
 
             // Копируем данные в буфер
@@ -92,12 +84,12 @@ DWORD WINAPI potok_pechati(LPVOID param)
 
             // Обновляем счётчики
             svobodno -= mogu_zapisat;
-            zapolnеnо += mogu_zapisat;
+            zapolneno += mogu_zapisat;
 
             dlina -= mogu_zapisat;
             ptr += mogu_zapisat;
 
-            // Сообщаем, что появились заполненные элементы
+            // Увеличиваем семафор заполненных байт
             ReleaseSemaphore(semZapolnennye, mogu_zapisat, NULL);
         }
 
@@ -106,27 +98,25 @@ DWORD WINAPI potok_pechati(LPVOID param)
     }
 
     fclose(vhod_fail);
+
     cout << "Поток печати " << nomer << " завершился\n";
     return 0;
 }
 
-
-// ==========================
+// -------------------------
 // Поток-потребитель
-// Берёт символы из буфера и пишет в output_print.txt
-// ==========================
+// -------------------------
 DWORD WINAPI potok_upravleniya(LPVOID)
 {
     while (true)
     {
-        // Ждём, пока появится хотя бы один заполненный элемент
+        // Ждём хотя бы один заполненный байт
         WaitForSingleObject(semZapolnennye, INFINITE);
 
-        // Захватываем мьютекс
+        // Захватываем мьютекс для доступа к буферу
         WaitForSingleObject(mutexPul, INFINITE);
 
-        // Если вдруг буфер пуст
-        if (zapolnеnо == 0)
+        if (zapolneno == 0)
         {
             ReleaseMutex(mutexPul);
             continue;
@@ -135,52 +125,46 @@ DWORD WINAPI potok_upravleniya(LPVOID)
         // Берём первый символ из буфера
         char c = pul[0];
 
-        // Записываем его в выходной файл
+        // Пишем его в выходной файл
         fputc(c, vyhodnoj_fail);
 
         // Сдвигаем буфер влево (удаляем первый символ)
-        memmove(pul, pul + 1, zapolnеnо - 1);
+        memmove(pul, pul + 1, zapolneno - 1);
 
-        // Обновляем счётчики
-        zapolnеnо--;
+        zapolneno--;
         svobodno++;
 
-        // Сообщаем, что появилась 1 свободная ячейка
+        // Увеличиваем количество свободных мест
         ReleaseSemaphore(semSvobodnye, 1, NULL);
 
-        // Освобождаем мьютекс
         ReleaseMutex(mutexPul);
     }
 
     return 0;
 }
 
-
-// ==========================
+// -------------------------
 // Главная функция
-// ==========================
+// -------------------------
 int main()
 {
     setlocale(LC_ALL, "Russian");
 
-    cout << "Объем пула: " << n
-        << ", потоков печати: " << m << endl << endl;
+    cout << "Объем пула: " << n << ", потоков печати: " << m << endl << endl;
 
-    // Открываем выходной файл
+    // Создаём выходной файл
     errno_t err_out = fopen_s(&vyhodnoj_fail, "output_print.txt", "w");
-
     if (err_out != 0 || !vyhodnoj_fail)
     {
         cout << "Не могу создать output_print.txt\n";
         return 1;
     }
 
-    // Создаём семафор свободных ячеек
-    // Начальное значение = n (всё свободно)
+    // Создаём семафоры:
+    // semSvobodnye — изначально n свободных мест
     semSvobodnye = CreateSemaphore(NULL, n, n, NULL);
 
-    // Семафор заполненных ячеек
-    // Начальное значение = 0 (пусто)
+    // semZapolnennye — изначально 0 заполненных мест
     semZapolnennye = CreateSemaphore(NULL, 0, n, NULL);
 
     // Создаём мьютекс
@@ -223,7 +207,7 @@ int main()
         CloseHandle(potoki[i]);
     }
 
-    // Закрываем семафоры и мьютекс
+    // Закрываем синхронизирующие объекты
     CloseHandle(semSvobodnye);
     CloseHandle(semZapolnennye);
     CloseHandle(mutexPul);

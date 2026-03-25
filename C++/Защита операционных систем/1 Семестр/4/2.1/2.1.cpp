@@ -30,12 +30,14 @@ DWORD WINAPI PotokChitatel(LPVOID)
     while ((c = fgetc(failIn)) != EOF)  // Чтение символов из файла до конца
     {
         WaitForSingleObject(semPustye, INFINITE); // Ждем, пока есть место в буфере
-        WaitForSingleObject(mutex, INFINITE);     // Захватываем мьютекс для безопасной записи
+        WaitForSingleObject(mutex, INFINITE);     // Захватываем мьютекс
+
         bufer[pos_zapis] = c;                     // Кладем символ в буфер
         pos_zapis = (pos_zapis + 1) % RAZMER_BUFERA; // Кольцевой переход
         zapisano++;                               // Увеличиваем счетчик "сырых" данных
+
         ReleaseMutex(mutex);                       // Освобождаем мьютекс
-        ReleaseSemaphore(semSyrye, 1, NULL);      // Увеличиваем семафор "сырых" данных
+        ReleaseSemaphore(semSyrye, 1, NULL);      // Сигнализируем: появилось "сырое" сырье
     }
     // После окончания чтения разрешаем шифровальщикам завершить работу
     for (int i = 0; i < KOLVO_SHIFROVSHIKOV; i++)
