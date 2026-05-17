@@ -6,7 +6,7 @@
 
 using namespace std;
 
-const int RAZMER_BUFERA = 50;
+const int RAZMER_BUFERA = 5;
 const int KOLVO_SHIFROVSHIKOV = 4;
 
 char bufer[RAZMER_BUFERA];
